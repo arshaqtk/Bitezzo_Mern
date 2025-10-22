@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&display=swap');
+
+.edu-nsw {
+    font-family: "Oswald", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;   /* choose one: 400, 500, 600, 700 */
+  font-style:normal;
+}
