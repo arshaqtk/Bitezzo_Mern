@@ -8,12 +8,12 @@ function PaymentPage() {
   const { user } = useContext(AuthContext)
   const { totalAmount } = useContext(OrderContext)
   
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('online');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('Razorpay');
   
   console.log(shippingDetails)
   
   const location = useLocation();
-  const { productId, fromBuyNow } = location.state || {};
+  const { productId, fromBuyNow,price,method } = location.state || {};
 
   const openRazorpay = () => {
     const options = {
@@ -26,9 +26,9 @@ function PaymentPage() {
       handler: function (response) {
         alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
         if (fromBuyNow) {
-          addBuyNowPayment(response.razorpay_payment_id, totalAmount, productId,{type:"online"})
+          addBuyNowPayment({paymentId:response.razorpay_payment_id,price,method, totalAmount, productId,type:"Razorpay"})
         } else {
-          addCartPayment(response.razorpay_payment_id, totalAmount,{type:"online"})
+          addCartPayment({paymentId:response.razorpay_payment_id, totalAmount,type:"Razorpay"})
         }
         // here you would call json-server and update order
         // fetch("http://localhost:3000/orders", {method:"POST", body: JSON.stringify({...})})
@@ -55,9 +55,9 @@ function PaymentPage() {
     alert(`Order Placed Successfully! Order ID: ${codOrderId}`);
     
     if (fromBuyNow) {
-      addBuyNowPayment(codOrderId, totalAmount, productId,{type:"cod"})
+      addBuyNowPayment({codOrderId,price,method, totalAmount, productId,type:"COD"})
     } else {
-      addCartPayment(codOrderId, totalAmount,{type:"cod"})
+      addCartPayment(codOrderId, totalAmount,{type:"COD"})
     }
     
     // here you would call json-server and update order with COD status

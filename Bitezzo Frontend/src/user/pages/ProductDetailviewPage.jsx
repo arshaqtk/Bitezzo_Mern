@@ -38,13 +38,13 @@ function ProductDetailView() {
       if (product.length > 0) {
         try {
           const currentProduct = product[0];
-          const { data } = await Axios_instance.get(`/products`);
+          const { data } = await axios.get(`http://localhost:5000/products/`)
           
           // Filter products by same category, exclude current product, and limit to 4
           const similar = data
             .filter(item => item.category === currentProduct.category && item.id !== currentProduct.id)
             .slice(0, 4)
-            .map(({ id, name, price, image, category }) => ({ id, name, price, image, category }));
+            .map(({ _id, name, price, images, category }) => ({ _id, name, price, images, category }));
           
           setSimilarProducts(similar);
         } catch (error) {
@@ -55,7 +55,9 @@ function ProductDetailView() {
     fetchSimilarProducts();
   }, [product]);
 
-  // Function to generate random review data for similar products
+
+  console.log(similarProducts)
+
   const getRandomReviewData = () => {
     const rating = (Math.random() * (5 - 3) + 3).toFixed(1);
     const count = Math.floor(Math.random() * 200) + 10;
@@ -186,11 +188,9 @@ return (
                         return;
                       }
                       addToCart({
-                        user_id: user.id,
                         productId: product.id,
-                        name: product.name,
                         price: product.price,
-                        image: product.image,
+                       
                       });
                     }}
                   >
@@ -208,7 +208,6 @@ return (
                     navigate("/checkout", {
                       state: {
                         fromBuyNow: true,
-                        user_id: user.id,
                         productId: product.id,
                         name: product.name,
                         price: product.price,
@@ -295,8 +294,9 @@ return (
                       {/* Product Image */}
                       <div className="h-40 overflow-hidden">
                         <img
-                          src={item.image}
-                          alt={item.name}
+                          src={item.images[0].url}
+                          alt={item.images[0].alt}
+
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                       </div>
@@ -340,7 +340,7 @@ return (
                           </div>
 
                           {cartItems.some(
-                            (cart) => cart.productId === item.id
+                            (cart) => cart.product._id === item._id
                           ) ? (
                             <button
                               className="p-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
@@ -370,11 +370,9 @@ return (
                               onClick={(e) => {
                                 e.stopPropagation();
                                 addToCart({
-                                  user_id: user.id,
-                                  productId: item.id,
-                                  name: item.name,
+                                  productId: item._id,
                                   price: item.price,
-                                  image: item.image,
+                                 
                                 });
                               }}
                             >

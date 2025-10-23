@@ -6,13 +6,14 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 
 function Cartpage() {
-  const { removeItem, updateQuantity, cartItems, cartItemCount, subTotal } = useContext(CartContext);
+  const { removeCart, updateQuantity, cartItems, cartItemCount, subTotal,fetchCartData } = useContext(CartContext);
+  const [cart,setCart]=useState([])
   const navigate = useNavigate();
   const [discount, setDiscount] = useState(0);
   const deliveryFee = subTotal > 500 ? 0 : 20;
   const tax = Math.round(subTotal * 0.05); // 5% tax
   const total = subTotal + deliveryFee + tax - discount;
-
+console.log(cartItems)
   // Initialize AOS
   useEffect(() => {
     AOS.init({
@@ -20,11 +21,19 @@ function Cartpage() {
       easing: 'ease-in-out',
       once: true
     });
+    setCart(cartItems)
+    fetchCartData()
   }, []);
 
   const getItemQuantity = (productId) => {
     return cartItemCount.find((cartItem) => cartItem.id === productId)?.count ?? 1;
   };
+
+  const removeProduct=(productId)=>{
+  removeCart(productId)
+  setCart(prev => prev.filter(item => item.product._id !== productId));
+
+}
 
 
   if (cartItems.length === 0) {
@@ -60,7 +69,7 @@ function Cartpage() {
         <div className="mb-8" data-aos="fade-down">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
           <p className="text-gray-600">
-            {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
+            {cart.length} {cart.length === 1 ? 'item' : 'items'} in your cart
           </p>
         </div>
 
@@ -68,7 +77,7 @@ function Cartpage() {
           
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {cartItems.map((item, index) => (
+            {cart.map((item, index) => (
               <div
                 key={item.product._id}
                 data-aos="fade-up"
@@ -145,7 +154,7 @@ function Cartpage() {
 
                         {/* Remove Button */}
                         <button
-                          onClick={() => removeItem(item.productId)}
+                          onClick={() => removeProduct(item.product._id)}
                           className="flex items-center gap-2 text-red-500 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg transition-all duration-200 group/remove"
                         >
                           <Trash2 className="w-4 h-4 group-hover/remove:scale-110 transition-transform duration-200" />

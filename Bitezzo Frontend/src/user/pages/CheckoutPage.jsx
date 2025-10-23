@@ -7,6 +7,7 @@ import { CartContext } from "../../context/CartContext";
 import { OrderContext } from "../../context/OrderContext";
 import { ProductContext } from "../../context/ProductContext";
 import { useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 
 
 
@@ -23,15 +24,16 @@ function CheckoutPage() {
 
   const [username, setName] = useState(user.username);
   const [phone, setPhone] = useState(shippingDetails.phone || "");
-  const [address, setAddress] = useState(shippingDetails.address || "");
+  const [street, setStreet] = useState(shippingDetails.street || "");
   const [city, setCity] = useState(shippingDetails.city || "");
   const [pincode, setPincode] = useState(shippingDetails.pincode || "");
   const [method, setMethod] = useState("regular");
 
   const productDetail = useMemo(
-    () => products.find((item) => item.id == productId),
+    () => products.find((item) => item._id == productId),
     [products, productId]
   );
+ 
 
   let finalTotal = fromBuyNow ? price : subTotal;
   const [totalAmount, setTotalAmount] = useState(finalTotal);
@@ -49,11 +51,21 @@ function CheckoutPage() {
     return deliveryCharge?deliveryCharge:20;
   }, [method, finalTotal]);
 
-  const shippingData = { name: username, address, city, pincode, phone };
+  const shippingData = { name: username, street, city, pincode, phone };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    addShippingAddress(shippingData, totalAmount, { fromBuyNow, productId });
+    const requiredKeys = ["name", "street", "city","pincode","phone"];
+
+const allPresentAndNotNull = requiredKeys.every(
+  key => Object.hasOwn(shippingData, key) && shippingData[key] != ""
+);
+if(allPresentAndNotNull){
+  alert(allPresentAndNotNull)
+    addShippingAddress(shippingData, totalAmount,price,method, { fromBuyNow, productId });
+}else{
+  toast.error("Fill all fields to proceed")
+}
   };
 
   return (
@@ -119,8 +131,8 @@ function CheckoutPage() {
                   <textarea
                     required
                     placeholder="Delivery Address"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
                     rows={3}
                     className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300 text-gray-800 placeholder-gray-400 bg-gray-50 focus:bg-white resize-none"
                   />
@@ -273,7 +285,7 @@ function CheckoutPage() {
               {fromBuyNow && productDetail ? (
                 <div className="border border-gray-200 rounded-xl p-4 flex gap-4 items-center hover:shadow-lg transition-all duration-300">
                   <img
-                    src={productDetail.image || "/placeholder.png"}
+                    src={productDetail.images[0].url || "/placeholder.png"}
                     alt={productDetail.name}
                     className="w-20 h-20 rounded-xl object-cover border-2 border-gray-100"
                   />

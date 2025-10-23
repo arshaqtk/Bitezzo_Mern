@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Axios_instance from '../api/axiosConfig';
 import { AuthContext } from './AuthContext';
 import { CartContext } from './CartContext';
+import axios from 'axios';
 
 export const OrderContext = createContext()
 export const OrderProvider = ({ children }) => {
@@ -43,16 +44,14 @@ export const OrderProvider = ({ children }) => {
 
 
 
-   const addShippingAddress = async (shippingData, TotalAmount, { fromBuyNow, productId }) => {
+   const addShippingAddress = async (shippingData, TotalAmount,price ,method,{ fromBuyNow, productId }) => {
       try {
          setTotalAmount(TotalAmount)
          setShippingDetails(shippingData)
-         await Axios_instance.patch(`users/${user.id}`, { shippingAddress: shippingData })
          if (fromBuyNow) {
-            navigate("/payment", { state: { fromBuyNow, productId } })
+            navigate("/payment", { state: { fromBuyNow, productId,price ,method} })
          } else {
-            navigate
-               ("/payment")
+            navigate("/payment")
          }
       } catch (error) {
          console.error( error);
@@ -99,23 +98,24 @@ export const OrderProvider = ({ children }) => {
 
    }
 
-   const addBuyNowPayment = async (paymentId, subtotal, productId,type) => {
-
+   const addBuyNowPayment = async ({paymentId,method,quantity=1, totalAmount,price, productId,type}) => {
 
       try {
-         console.log(type.type)
-         const product = await Axios_instance.get(`products/${productId}`)
-         const ProductData = { productId: product.data.id, productName: product.data.name, productPrice: product.data.price, productImage: product.data.image, productQuantity: 1 }
+         // console.log(type.type)
+         // const product = await Axios_instance.get(`products/${productId}`)
+         // const ProductData = { productId: product.data.id, productName: product.data.name, productPrice: product.data.price, productImage: product.data.image, productQuantity: 1 }
 
-         const userResponse = await Axios_instance.get(`users/${user.id}`)
-         const userResponseData = userResponse.data
-         const order = [ { id: Date.now(), products: [ProductData],userId:user.id, status:"pending",paymentType:type.type,payment: paymentId, subTotal: subtotal, date: new Date().toISOString().split("T")[0], shippingAddress: shippingDetails },...userResponseData.orders]
+         // const userResponse = await Axios_instance.get(`users/${user.id}`)
+         // const userResponseData = userResponse.data
+         // const order = [ { id: Date.now(), products: [ProductData],userId:user.id, status:"pending",paymentType:type.type,payment: paymentId, subTotal: subtotal, date: new Date().toISOString().split("T")[0], shippingAddress: shippingDetails },...userResponseData.orders]
 
-         setOrderDetails(order)
-         await Axios_instance.patch(`users/${user.id}`, { orders: order })
-         fetchAllOrderData()
-         await updateTopSellingProducts([ProductData]);
-         navigate("/products")
+         // setOrderDetails(order)
+         // await Axios_instance.patch(`users/${user.id}`, { orders: order })
+         // fetchAllOrderData()
+         // await updateTopSellingProducts([ProductData]);
+         // navigate("/products")
+
+         const order=await axios.post("http://localhost:5000/order/direct",{productId,price,quantity,address:shippingDetails,total:totalAmount,deliverySpeed:method,paymentMethod:type},{withCredentials:true})
       } catch (error) {
          console.error( error);
       }
