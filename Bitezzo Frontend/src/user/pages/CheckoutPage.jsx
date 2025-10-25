@@ -33,7 +33,8 @@ function CheckoutPage() {
     () => products.find((item) => item._id == productId),
     [products, productId]
   );
- 
+
+  console.log("cartItems",cartItems)
 
   let finalTotal = fromBuyNow ? price : subTotal;
   const [totalAmount, setTotalAmount] = useState(finalTotal);
@@ -299,21 +300,21 @@ if(allPresentAndNotNull){
                 <div className="space-y-4">
                   {cartItems.map((item) => (
                     <div
-                      key={item.productId}
+                      key={item.product._id}
                       className="border border-gray-200 rounded-xl p-4 flex gap-4 items-center hover:shadow-lg transition-all duration-300"
                     >
                       <img
-                        src={item.productImage || "/placeholder.png"}
-                        alt={item.productName}
+                        src={item.product.images[0].url || "/placeholder.png"}
+                        alt={item.product.name}
                         className="w-20 h-20 rounded-xl object-cover border-2 border-gray-100"
                       />
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-800">{item.productName}</h4>
+                        <h4 className="font-semibold text-gray-800">{item.product.name}</h4>
                         <p className="text-sm text-gray-600 mt-1">
-                          Qty: {item.productQuantity}
+                          Qty: {item.quantity}
                         </p>
                         <p className="text-lg font-bold text-red-600 mt-1">
-                          ₹{item.productPrice * item.productQuantity}
+                          ₹{item.price * item.quantity}
                         </p>
                       </div>
                     </div>

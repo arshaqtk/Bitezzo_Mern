@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react'
 import { OrderContext } from '../../context/OrderContext'
 import { AuthContext } from '../../context/AuthContext';
 import { useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 function PaymentPage() {
   const { shippingDetails, addCartPayment, addBuyNowPayment } = useContext(OrderContext)
@@ -24,14 +25,12 @@ function PaymentPage() {
       description: "Paying....",
       image: "https://yourlogo.png",
       handler: function (response) {
-        alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
+        toast.success("Payment Successful!");
         if (fromBuyNow) {
           addBuyNowPayment({paymentId:response.razorpay_payment_id,price,method, totalAmount, productId,type:"Razorpay"})
         } else {
-          addCartPayment({paymentId:response.razorpay_payment_id, totalAmount,type:"Razorpay"})
+          addCartPayment({paymentId:response.razorpay_payment_id,method, totalAmount,type:"Razorpay"})
         }
-        // here you would call json-server and update order
-        // fetch("http://localhost:3000/orders", {method:"POST", body: JSON.stringify({...})})
       },
       prefill: {
         name: "Arshaq Tk",
@@ -39,7 +38,7 @@ function PaymentPage() {
         contact: "9876543210",
       },
       notes: {
-        address: "Test Address",
+        Street: "Test Address",
       },
       theme: {
         color: "#3399cc",
@@ -52,16 +51,14 @@ function PaymentPage() {
 
   const handleCashOnDelivery = () => {
     const codOrderId = `COD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    alert(`Order Placed Successfully! Order ID: ${codOrderId}`);
+    toast.success(`Order Placed Successfully!`);
     
     if (fromBuyNow) {
       addBuyNowPayment({codOrderId,price,method, totalAmount, productId,type:"COD"})
     } else {
-      addCartPayment(codOrderId, totalAmount,{type:"COD"})
+      addCartPayment({codOrderId,method, totalAmount,type:"COD"})
     }
     
-    // here you would call json-server and update order with COD status
-    // fetch("http://localhost:3000/orders", {method:"POST", body: JSON.stringify({paymentMethod: 'COD', ...})})
   };
 
   const handlePayment = () => {
@@ -94,8 +91,8 @@ function PaymentPage() {
                   <span className="font-medium">{shippingDetails.name}</span>
                 </div>
                 <div className="flex items-start">
-                  <span className="font-medium text-gray-600 w-20">Address:</span>
-                  <span>{shippingDetails.address}</span>
+                  <span className="font-medium text-gray-600 w-20">Street:</span>
+                  <span>{shippingDetails.street}</span>
                 </div>
                 <div className="flex items-start">
                   <span className="font-medium text-gray-600 w-20">Phone:</span>

@@ -2,28 +2,10 @@ import React, { useContext, useEffect, useState } from 'react';
 import Banner from '../components/Banner/Banner';
 import { useNavigate } from 'react-router-dom';
 import Axios_instance from '../../api/axiosConfig';
-import Footer from '../components/Footer/Footer';
 import { CartContext } from '../../context/CartContext';
 import { AuthContext } from '../../context/AuthContext';
 import { WishListContext } from '../../context/WishlistContext';
-import burgerImg from '../../assets/images/burgerImg.png'
-import {
-  Truck,
-  Leaf,
-  Star,
-  Heart,
-  ShoppingCart,
-  Award, Clock,
-  Shield,
-  ChefHat,
-  Pizza,
-  Coffee,
-  Cake,
-  Salad,
-  Sandwich,
-  ArrowRight,
-  Play
-} from "lucide-react";
+import { Truck,  Leaf, Star, Heart, ShoppingCart, Award, Clock, Shield, ChefHat,Pizza, Coffee, Cake, Salad, Sandwich,} from "lucide-react";
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
@@ -88,49 +70,6 @@ function HomePage() {
   return (
     <>
       <Banner />
-
-      {/* Hero Section */}
-      {/* <section className="relative bg-gradient-to-br from-orange-600 via-red-500 to-pink-600 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative container mx-auto px-6 py-24 lg:py-32">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div data-aos="fade-right">
-              <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-                Taste the
-                <span className="text-yellow-300 block">Extraordinary</span>
-              </h1>
-              <p className="text-xl mb-8 text-gray-100 leading-relaxed">
-                Experience culinary excellence with our handcrafted dishes made from the finest ingredients, delivered fresh to your doorstep.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  onClick={() => navigate("/products")}
-                  className="group px-8 py-4 bg-white text-orange-600 font-bold rounded-full shadow-lg hover:bg-gray-100 transition-all duration-300 flex items-center justify-center"
-                >
-                  Order Now
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </button>
-                <button className="px-8 py-4 border-2 border-white text-white font-bold rounded-full hover:bg-white hover:text-orange-600 transition-all duration-300 flex items-center justify-center">
-                  <Play className="mr-2 w-5 h-5" />
-                  Watch Story
-                </button>
-              </div>
-            </div>
-            <div data-aos="fade-left" className="relative">
-              <div className="relative z-10 ">
-                <img
-                  src=""
-                  alt="Delicious Food"
-                  className="rounded-3xl  w-full max-w-lg mx-auto"
-                />
-              </div>
-              <div className="absolute -top-4 -right-4 w-72 h-72 bg-yellow-300 rounded-full opacity-20 blur-3xl"></div>
-              <div className="absolute -bottom-4 -left-4 w-64 h-64 bg-pink-300 rounded-full opacity-20 blur-3xl"></div>
-            </div>
-          </div>
-        </div>
-      </section> */}
-
       {/* Categories Section */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">

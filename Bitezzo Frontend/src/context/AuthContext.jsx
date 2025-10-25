@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
           // image: profileIcon, role: "user", isAuthenticated: true, cart: [], wishlist: [], shippingAddress: [], orders: []
          }
 
-        const Postresponse = await axios.post('http://localhost:5000/auth/signup', newuser)
+        const Postresponse = await Axios_instance.post('/auth/signup', newuser)
         console.log(Postresponse.data)
         setUser(userData)
         // localStorage.setItem("user", JSON.stringify(Postresponse.data))
@@ -53,8 +53,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const loginCredentials={email,password}
-      const response = await axios.post(`http://localhost:5000/auth/login`,loginCredentials,{ withCredentials: true })
-
+      const response = await Axios_instance.post(`/auth/login`,loginCredentials,{ withCredentials: true })
+console.log(response.data)
       if (response.data.length === 0) {
         toast.error("The UserName or Password doesn't Match")
       }
@@ -63,18 +63,10 @@ export const AuthProvider = ({ children }) => {
         toast.error("You Have Been Blocked By Admin")
       } else {
         setUser(response.data.user)
-
-
-        // localStorage.setItem("role", response.data.user.role)
-
-        // if (response.data.user.role === "user") {
+        localStorage.setItem("accessToken", response.data.accessToken);
           const localStorageLoginData = { isAuthenticated: true, id: response.data.user._id, username: response.data.user.username, email: response.data.user.email }
           localStorage.setItem("user", JSON.stringify(localStorageLoginData))
-
           navigate("/")
-        // } else {
-          // navigate("/admin/dashboard")
-        // }
         toast.success("Logined Successfully")
 
       }

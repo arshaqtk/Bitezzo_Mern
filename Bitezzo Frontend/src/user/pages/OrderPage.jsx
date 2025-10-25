@@ -11,15 +11,11 @@ function OrderPage() {
     const { user } = useContext(AuthContext)
     const navigate = useNavigate()
 
+
     const cancelOrder = async (orderId) => {
         try {
-            const res = await Axios_instance.get(`/users/${user.id}`);
-            const userData = res.data;
-
-            const updatedOrders = userData.orders.map(order =>
-                order.id === orderId ? { ...order, status: "Canceled" } : order
-            );
-            await Axios_instance.patch(`users/${user.id}`, { orders: updatedOrders });
+            
+            await Axios_instance.patch(`order/${orderId}/cancel`,{},{withCredentials:true});
             fetchOrderData();
             toast.success("Order has been canceled");
         } catch (e) {
@@ -141,7 +137,7 @@ function OrderPage() {
                                         <div>
                                             <p className="text-sm font-medium text-gray-600">Total Spent</p>
                                             <p className="text-3xl font-bold text-gray-900">
-                                                ₹{orderDetails.reduce((sum, order) => sum + order.subTotal, 0)}
+                                                ₹{orderDetails.reduce((sum, order) => sum + order.total, 0)}
                                             </p>
                                         </div>
                                         <div className="bg-green-100 rounded-full p-3">
@@ -191,22 +187,22 @@ function OrderPage() {
                                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2z" />
                                                         </svg>
-                                                        <span className="font-medium">Ordered on {item.date}</span>
+                                                        <span className="font-medium">Ordered on {item.createdAt}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                                         </svg>
-                                                        <span className="font-medium">{item.products.length} items</span>
+                                                        <span className="font-medium">{item.items.length} items</span>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="text-left lg:text-right">
-                                                <p className="text-3xl font-bold text-gray-900 mb-2">₹{item.subTotal}</p>
+                                                <p className="text-3xl font-bold text-gray-900 mb-2">₹{item.total}</p>
                                                 {item.status.toLowerCase() === "pending" && (
                                                     <button
                                                         className="bg-red-50 text-red-600 font-semibold px-4 py-2 rounded-lg hover:bg-red-100 transition-colors duration-200 border border-red-200"
-                                                        onClick={() => cancelOrder(item.id)}
+                                                        onClick={() => cancelOrder(item._id)}
                                                     >
                                                         Cancel Order
                                                     </button>
@@ -230,11 +226,11 @@ function OrderPage() {
                                                     <h3 className="text-lg font-bold text-gray-900">Shipping Address</h3>
                                                 </div>
                                                 <div className="space-y-1 text-gray-700">
-                                                    <p className="font-semibold text-gray-900">{item.shippingAddress.name}</p>
-                                                    <p>{item.shippingAddress.address}</p>
-                                                    <p>{item.shippingAddress.city}</p>
-                                                    <p>PIN: {item.shippingAddress.pincode}</p>
-                                                    <p>Phone: {item.shippingAddress.phone}</p>
+                                                    <p className="font-semibold text-gray-900">{item.address.name}</p>
+                                                    <p>{item.address.street}</p>
+                                                    <p>{item.address.city}</p>
+                                                    <p>PIN: {item.address.pincode}</p>
+                                                    <p>Phone: {item.address.phone}</p>
                                                 </div>
                                             </div>
 
@@ -250,8 +246,8 @@ function OrderPage() {
                                                 </div>
                                                 <div className="space-y-3">
                                                     <div className="flex justify-between text-gray-700">
-                                                        <span>Items ({item.products.length})</span>
-                                                        <span className="font-medium">₹{item.subTotal}</span>
+                                                        <span>Items ({item.items.length})</span>
+                                                        <span className="font-medium">₹{item.total}</span>
                                                     </div>
                                                     <div className="flex justify-between text-gray-700">
                                                         <span>Delivery</span>
@@ -260,7 +256,7 @@ function OrderPage() {
                                                     <div className="border-t border-gray-200 pt-3">
                                                         <div className="flex justify-between text-lg font-bold text-gray-900">
                                                             <span>Total</span>
-                                                            <span>₹{item.subTotal}</span>
+                                                            <span>₹{item.total}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -278,29 +274,29 @@ function OrderPage() {
                                                 <h3 className="text-xl font-bold text-gray-900">Items Ordered</h3>
                                             </div>
                                             <div className="grid gap-4">
-                                                {item.products.map((product) => (
+                                                {item.items.map((products) => (
                                                     <div 
                                                         className="flex items-center gap-4 bg-gray-50 rounded-2xl p-4 hover:bg-gray-100 transition-colors duration-200 border border-gray-100" 
-                                                        key={product.productId}
+                                                        key={products.product._id}
                                                     >
                                                         <div className="relative">
                                                             <img
-                                                                src={product.productImage}
-                                                                alt={product.productName}
+                                                                src={products.product.images[0].url}
+                                                                alt={products.product.name}
                                                                 className="w-20 h-20 object-cover rounded-xl shadow-md"
                                                             />
                                                             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
-                                                                {product.productQuantity}
+                                                                {products.quantity}
                                                             </span>
                                                         </div>
                                                         <div className="flex-1">
-                                                            <h4 className="font-bold text-gray-900 text-lg mb-1">{product.productName}</h4>
-                                                            <p className="text-sm text-gray-600 mb-2">Quantity: {product.productQuantity}</p>
-                                                            <p className="text-lg font-bold text-gray-900">₹{product.productPrice * product.productQuantity}</p>
+                                                            <h4 className="font-bold text-gray-900 text-lg mb-1">{products.product.name}</h4>
+                                                            <p className="text-sm text-gray-600 mb-2">Quantity: {products.product.quantity}</p>
+                                                            <p className="text-lg font-bold text-gray-900">₹{products.price * products.quantity}</p>
                                                         </div>
                                                         <button
                                                             className="bg-gray-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-                                                            onClick={() => navigate(`/productview/${product.productId}`)}
+                                                            onClick={() => navigate(`/productview/${products.product._id}`)}
                                                         >
                                                             View Product
                                                         </button>

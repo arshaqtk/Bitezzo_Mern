@@ -8,7 +8,6 @@ import axios from "axios";
 
 export const WishListContext = createContext()
 export const WishlistProvider = ({ children }) => {
-    const navigate = useNavigate();
 
     const [wishlistToggle, setWishListToggle] = useState(false)
     const [wishlistItems, setWishListItems] = useState([])
@@ -16,16 +15,17 @@ export const WishlistProvider = ({ children }) => {
 
     async function fetchWishListData() {
         // if (user.id) {
-            try {
-                const { data } = await axios.get(`http://localhost:5000/wishlist/`, { withCredentials: true })
+        try {
+            const { data } = await Axios_instance.get(`/wishlist/`, { withCredentials: true })
 
-                const wishlist = data.wishlist
+            const wishlist = data.wishlist
+            console.log(wishlist)
+            setWishListItems(wishlist)
 
-                setWishListItems(wishlist)
-
-            } catch (err) {
-              console.log( err.response?.data || err.message)
-            }
+        } catch (err) {
+            console.log(err.response?.data || err.message)
+            toast.error(err.response?.data?.message || "Something went wrong");
+        }
         // }
     }
     useEffect(() => {
@@ -42,19 +42,20 @@ export const WishlistProvider = ({ children }) => {
         try {
 
             // if (user.id) {
-            const { data } = await axios.get(`http://localhost:5000/wishlist/`, { withCredentials: true })
+            // const response = await Axios_instance.get(`/wishlist/`, { withCredentials: true })
+            // toast.error("called")
+            //     const wishlist = response.data?.wishlist
+            //     console.log(wishlist)
 
-            const wishlist = data.wishlist
-            console.log(wishlist)
 
-            if (wishlist.find((item) => item.product._id == productId)) {
-                const { data } = await axios.patch(`http://localhost:5000/wishlist/update`, { productId }, { withCredentials: true })
+            if (wishlistItems.find((item) => item.product._id == productId)) {
+                const { data } = await Axios_instance.patch(`/wishlist/update`, { productId }, { withCredentials: true })
                 const updatedWishlist = data.wishlist
                 setWishListItems(updatedWishlist)
                 toast.success("removed")
 
             } else {
-                const response = await axios.post(`http://localhost:5000/wishlist/add`, { productId }, { withCredentials: true })
+                const response = await Axios_instance.post(`/wishlist/add`, { productId }, { withCredentials: true })
                 console.log(response)
                 toast.success("Wishlist Added")
             }
@@ -64,7 +65,8 @@ export const WishlistProvider = ({ children }) => {
 
 
         } catch (err) {
-            console.log( err.response?.data || err.message)
+            console.log(err.response?.data || err.message)
+            toast.error(err.response?.data?.message || "Something went wrong");
         }
     }
 
@@ -74,22 +76,22 @@ export const WishlistProvider = ({ children }) => {
         try {
 
             // if (user.id) {
-                // const userResponse = await Axios_instance.get(`users/${user.id}`)
-                // const userData = userResponse.data
+            // const userResponse = await Axios_instance.get(`users/${user.id}`)
+            // const userData = userResponse.data
 
-                // if (userData.wishlist.find((item) => item.productId == productId)) {
-                //     const updatedWishlist = userData.wishlist.filter(item => item.productId !== productId);
-                //     setWishListItems(updatedWishlist)
-                //     await Axios_instance.patch(`/users/${user.id}`, { wishlist: updatedWishlist })
-                //     toast.success("removed")
-                // }
-                const { data } = await axios.patch(`http://localhost:5000/wishlist/update`, { productId }, { withCredentials: true })
-                const updatedWishlist = data.wishlist
-                setWishListItems(updatedWishlist)
-                toast.success("removed")
+            // if (userData.wishlist.find((item) => item.productId == productId)) {
+            //     const updatedWishlist = userData.wishlist.filter(item => item.productId !== productId);
+            //     setWishListItems(updatedWishlist)
+            //     await Axios_instance.patch(`/users/${user.id}`, { wishlist: updatedWishlist })
+            //     toast.success("removed")
+            // }
+            const { data } = await Axios_instance.patch(`/wishlist/update`, { productId }, { withCredentials: true })
+            const updatedWishlist = data.wishlist
+            setWishListItems(updatedWishlist)
+            toast.success("removed")
             // }
         } catch (err) {
-            console.log( err.response?.data || err.message)
+            console.log(err.response?.data || err.message)
         }
     }
 

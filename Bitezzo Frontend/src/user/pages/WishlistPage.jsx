@@ -8,20 +8,21 @@ import toast from "react-hot-toast";
 
 function WishlistPage() {
   const navigate = useNavigate();
-  const { removeWishlist, wishlistItems } = useContext(WishListContext);
+  const { removeWishlist, wishlistItems,fetchWishListData } = useContext(WishListContext);
   const { addToCart, cartItems } = useContext(CartContext);
   const { user } = useContext(AuthContext);
-  const [wishlist,setWishlist]=useState([])
+  const [wishlist, setWishlist] = useState([])
 
-  useEffect(()=>{
-setWishlist(wishlistItems)
+
+  useEffect(() => {
+    fetchWishListData()
+    setWishlist(wishlistItems)
   },[])
-  console.log(wishlist)
 
-const removeProduct=(productId)=>{
-  removeWishlist(productId)
-  setWishlist(prev => prev.filter(item => item.product._id !== productId));
-}
+  const removeProduct = (productId) => {
+    setWishlist(prev => prev.filter(item => item.product._id !== productId));
+    removeWishlist(productId)
+  }
   // Function to generate random review data
   const getRandomReviewData = () => {
     const rating = (Math.random() * (5 - 3) + 3).toFixed(1);
@@ -39,7 +40,7 @@ const removeProduct=(productId)=>{
               My Wishlist
             </h1>
             <p className="text-gray-600">
-              {wishlist.length > 0 
+              {wishlist.length > 0
                 ? `${wishlist.length} item${wishlist.length > 1 ? 's' : ''} in your wishlist`
                 : 'Your collection of favorites'
               }
@@ -118,8 +119,8 @@ const removeProduct=(productId)=>{
                       onClick={() => navigate(`/productview/${item.product._id}`)}
                     >
                       <img
-                        src={item.product.images[0].url}
-                        alt={item.product.images[0].alt}
+                        src={item?.product.images[0]?.url}
+                        alt={item?.product.images[0]?.alt}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -181,7 +182,7 @@ const removeProduct=(productId)=>{
                             Add to Cart
                           </button>
                         )}
-                        
+
                         <button
                           className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
                           onClick={() => navigate(`/productview/${item.product._id}`)}

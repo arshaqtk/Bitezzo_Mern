@@ -89,8 +89,8 @@ function Products() {
   };
 
   const isInCart = (itemId) => cartItems.some((cart) => cart.product._id === itemId);
-  const isInWishlist = (itemId) => wishlistItems.some((wishlist) => wishlist.productId === itemId);
-
+  const isInWishlist = (itemId) => wishlistItems.some((wishlist) => wishlist.product._id === itemId);
+console.log(isInWishlist)
   const categories = [
     { label: "All Items", value: "all" },
     { label: "Drinks & Beverages", value: "drinks" },

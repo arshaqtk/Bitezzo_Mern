@@ -44,7 +44,7 @@ const ProductListView = ({ products, handleAddToCart, handleAddToWishlist, isInC
                   {/* Wishlist Button */}
                   <button
                     className={`p-2 rounded-full transition-all duration-200 ${
-                      isInWishlist(item.id)
+                      isInWishlist(item._id)
                         ? "bg-red-100 text-red-500"
                         : "text-gray-400 hover:bg-red-100 hover:text-red-500"
                     }`}

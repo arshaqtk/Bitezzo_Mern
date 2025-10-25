@@ -31,7 +31,7 @@ function ProfilePage() {
       once: true
     });
     const fetchData=async ()=>{
-      const response = await axios.get("http://localhost:5000/user/profile", {withCredentials: true});
+      const response = await Axios_instance.get("/user/profile", {withCredentials: true});
              const userData = response.data;
              setUserData(userData)
           

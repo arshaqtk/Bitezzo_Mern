@@ -20,10 +20,10 @@ export const CartProvider = ({ children }) => {
     //_________Data____Fetching_______________
     async function fetchCartData() {
         try {
-            const {data} = await Axios_instance.get(`http://localhost:5000/cart/`,{withCredentials:true})
+            const {data} = await Axios_instance.get(`/cart/`,{withCredentials:true})
             const cart=data.cart[0]
-            console.log(cart)
-            setCartItems(cart.items)
+           if(cart){
+            setCartItems(cart?.items)
             setCartItemsCount(
                 cart.items.map((item) => ({
                     id: item.product._id,
@@ -32,6 +32,7 @@ export const CartProvider = ({ children }) => {
                 }))
             );
             setSubTotal(cart.items.reduce((sum, item) => sum += item.price * item.quantity, 0))
+        }
         } catch (err) {
              toast.error(err.response?.data?.message || "Issue in fetching cart");
             console.error("Axios Cart error:", err.response?.data || err.message);
@@ -51,7 +52,7 @@ export const CartProvider = ({ children }) => {
 
     const addToCart = async ({ productId, price }) => {
         try {
-                const {data} = await axios.post(`http://localhost:5000/cart/add`, { productId, price }, { withCredentials: true })
+                const {data} = await Axios_instance.post(`/cart/add`, { productId, price }, { withCredentials: true })
                console.log(data)
                const cart=data.cart.items
                 const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -99,7 +100,7 @@ console.log(updatedCartItemsCount)
                 //         : item;
                 // });
                 
-                const updatedCart = await axios.patch(`http://localhost:5000/cart/updateQuantity`, {productId,action:type },{withCredentials:true})
+                const updatedCart = await Axios_instance.patch(`/cart/updateQuantity`, {productId,action:type },{withCredentials:true})
                 console.log(updatedCart)
                   const cartData =updatedCart.data.cart.items
              setCartItems(cartData)
@@ -121,7 +122,7 @@ console.log(updatedCartItemsCount)
     const removeCart = async (productId) => {
         try {
           
-           const updatedCart= await Axios_instance.patch(`http://localhost:5000/cart/remove`, {productId},{withCredentials:true})
+           const updatedCart= await Axios_instance.patch(`/cart/remove`, {productId},{withCredentials:true})
         
         const cartData =updatedCart.data.cart.items
              setCartItems(cartData)
@@ -138,7 +139,7 @@ console.log(cartData)
 
 
 
-    return (<CartContext.Provider value={{ addToCart, removeCart, updateQuantity, fetchCartData, cartItems, cartItemCount, subTotal, setSubTotal }}>
+    return (<CartContext.Provider value={{ addToCart, removeCart, updateQuantity, fetchCartData, cartItems, cartItemCount, subTotal, setSubTotal,setCartItems,setCartItemsCount }}>
         {children}
     </CartContext.Provider>)
 
