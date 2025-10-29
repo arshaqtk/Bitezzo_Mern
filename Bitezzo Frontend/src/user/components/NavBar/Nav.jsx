@@ -14,7 +14,7 @@ function Nav() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const { user, logout } = useContext(AuthContext);
+  const { auth, logout } = useContext(AuthContext);
   const { cartItems, fetchCartData } = useContext(CartContext);
   const { wishlistItems, fetchWishListData } = useContext(WishListContext);
   const { acceptSearchValue } = useContext(SearchContext);
@@ -211,20 +211,20 @@ function Nav() {
                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    {user && (
+                    {auth && (
                       <span className="ml-2 text-sm font-medium hidden sm:block">
-                        {user.name?.split(' ')[0] || 'User'}
+                        {auth.name?.split(' ')[0] || 'User'}
                       </span>
                     )}
                   </button>
                   
                   {showAccountMenu && (
                     <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50 transform transition-all duration-200">
-                      {user ? (
+                      {auth ? (
                         <>
                           <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                            <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                            <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                            <p className="text-sm font-medium text-gray-900">{auth.name}</p>
+                            <p className="text-sm text-gray-500 truncate">{auth.email}</p>
                           </div>
                           <button
                             onClick={() => { navigate("/profile"); setShowAccountMenu(false); }}

@@ -1,23 +1,22 @@
 import React, { useContext, useEffect, useState } from "react";
 import Axios_instance from "../../api/axiosConfig";
 import Sidebar from "../component/SideBar";
-import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { getAllUserData, toggleUserAuthentication } from "../services/adminUserApi";
 
 export default function UsersTable() {
   const [users, setUser] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const { toggleUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await Axios_instance.get("/users?role=user");
-        setUser(response.data);
+        const users = await getAllUserData()
+        setUser(users)
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
@@ -25,25 +24,31 @@ export default function UsersTable() {
       }
     };
     fetchData();
-  }, [toggleUser]);
+  },[]);
 
   const toggleBlock = async (id, isAuthenticated) => {
+
     try {
-      await toggleUser(id, !isAuthenticated);
+      console.log(id)
+     const user= await toggleUserAuthentication(id);
+
+     if(user.success){
       setUser((prevUsers) =>
         prevUsers.map((u) =>
-          u.id === id ? { ...u, isAuthenticated: !isAuthenticated } : u
+          u._id === id ? { ...u, isAuthenticated: !isAuthenticated } : u
         )
-      );
+      )}
+
     } catch (error) {
       console.error("Error toggling user status:", error);
     }
   };
 
+
   // Filter users based on search term and status
   const filteredUsers = users.filter(user => {
-    console.log(user)
-    const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || 
                          (statusFilter === "active" && user.isAuthenticated) ||
@@ -180,10 +185,10 @@ export default function UsersTable() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredUsers.length > 0 ? (
                       filteredUsers.map((user, index) => (
-                        <tr key={user.id} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-colors duration-200">
+                        <tr key={user._id} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-colors duration-200">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div 
-                              onClick={() => navigate(`/admin/users-detailview/${user.id}`)}
+                              onClick={() => navigate(`/admin/users-detailview/${user._id}`)}
                               className="cursor-pointer group"
                             >
                               <div className="relative">
@@ -198,7 +203,7 @@ export default function UsersTable() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-semibold text-gray-900">{user.username}</div>
+                              <div className="text-sm font-semibold text-gray-900">{user.name}</div>
                               <div className="text-sm text-gray-500">{user.email}</div>
                             </div>
                           </td>
@@ -218,7 +223,7 @@ export default function UsersTable() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
                             <button
-                              onClick={() => toggleBlock(user.id, user.isAuthenticated)}
+                              onClick={() => toggleBlock(user._id, user.isAuthenticated)}
                               className={`inline-flex items-center px-4 py-2 rounded-lg font-semibold text-white text-sm transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md ${
                                 user.isAuthenticated
                                   ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"

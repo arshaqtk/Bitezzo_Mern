@@ -87,18 +87,6 @@ console.log(updatedCartItemsCount)
         
 
         try {
-            // const { data } = await Axios_instance.get(`/users/${user.id}`);
-            // const cartData = data.cart ?? data[0]?.cart;
-            
-            // if (!cartData) throw new Error("Cart data not found");
-            
-            
-            // const updatedQuantity = cartData.map((item) => {
-                //     const cartItem = updatedCartItemsCount.find((c) => c.id === item.productId);
-                
-                //     return item.productId === id ? { ...item, productQuantity: cartItem ? cartItem.count : item.productQuantity }
-                //         : item;
-                // });
                 
                 const updatedCart = await Axios_instance.patch(`/cart/updateQuantity`, {productId,action:type },{withCredentials:true})
                 console.log(updatedCart)

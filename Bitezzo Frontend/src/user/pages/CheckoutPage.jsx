@@ -15,14 +15,14 @@ import toast from "react-hot-toast";
 
 function CheckoutPage() {
  const location = useLocation();
-  const { user } = useContext(AuthContext);
+  const { auth } = useContext(AuthContext);
   const { cartItems } = useContext(CartContext);
   const { shippingDetails, addShippingAddress } = useContext(OrderContext);
   const { products } = useContext(ProductContext);
 
   const { productId, price, fromBuyNow,deliveryCharge,subTotal } = location.state || {};
 
-  const [username, setName] = useState(user.username);
+  const [username, setName] = useState(auth.name);
   const [phone, setPhone] = useState(shippingDetails.phone || "");
   const [street, setStreet] = useState(shippingDetails.street || "");
   const [city, setCity] = useState(shippingDetails.city || "");

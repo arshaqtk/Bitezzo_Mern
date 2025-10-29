@@ -9,7 +9,7 @@ export const AuthContext = createContext()
 
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
+  const [auth, setAuth] = useState(() => {
     try {
       const storedUser = localStorage.getItem("user")
       return storedUser ? JSON.parse(storedUser) : ""
@@ -24,25 +24,13 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (newuser) => {
     try {
-      // const response = await axios.get(`http://localhost:5000/auth/users?email=${newuser.email}`)
-      // if (response.data.length > 0) {
-      //   toast.error("Email id Already Exists")
-      // } else {
-
-        const userData = { ...newuser
-          // image: profileIcon, role: "user", isAuthenticated: true, cart: [], wishlist: [], shippingAddress: [], orders: []
-         }
-
-        const Postresponse = await Axios_instance.post('/auth/signup', newuser)
-        console.log(Postresponse.data)
-        setUser(userData)
-        // localStorage.setItem("user", JSON.stringify(Postresponse.data))
-        toast.success("Signup SuccessFull")
-        navigate('/login')
-      // }
+      const Postresponse = await Axios_instance.post('/auth/signup', newuser)
+     setAuth(newuser)
+      toast.success("Signup SuccessFull")
+      navigate('/login')
 
     } catch (err) {
-       console.error("Axios signup error:", err.response?.data || err.message);
+      console.error("Axios signup error:", err.response?.data || err.message);
     }
   }
 
@@ -52,24 +40,38 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const loginCredentials={email,password}
-      const response = await Axios_instance.post(`/auth/login`,loginCredentials,{ withCredentials: true })
-console.log(response.data)
+      const loginCredentials = { email, password }
+      const response = await Axios_instance.post(`/auth/login`, loginCredentials, { withCredentials: true })
+      console.log(response.data)
+      const user =response.data.user
       if (response.data.length === 0) {
         toast.error("The UserName or Password doesn't Match")
       }
-      
-      if (!response.data.user.isAuthenticated) {
-        toast.error("You Have Been Blocked By Admin")
-      } else {
-        setUser(response.data.user)
-        localStorage.setItem("accessToken", response.data.accessToken);
-          const localStorageLoginData = { isAuthenticated: true, id: response.data.user._id, username: response.data.user.username, email: response.data.user.email }
-          localStorage.setItem("user", JSON.stringify(localStorageLoginData))
-          navigate("/")
-        toast.success("Logined Successfully")
 
-      }
+       
+        if(response.status==200) {
+          if(response.data.user.isAdmin){
+            toast.success("admin")
+            navigate("/admin")
+          }else{
+            toast.success("user")
+            navigate("/")
+            const localStorageLoginData = {id:user._id, username:user.name, email:user.email,isAdmin:user.isAdmin }
+            localStorage.setItem("user", JSON.stringify(localStorageLoginData))
+          }
+          setAuth({
+            id: user.id,
+            name: user.name,
+            email:user.email,
+            isAdmin:user.isAdmin,
+            token: response.data.accessToken,
+          });
+          localStorage.setItem("accessToken", response.data.accessToken);
+          toast.success("Logined Successfully")
+
+        }
+      
+
     } catch (err) {
       console.error("Axios login error:", err.response?.data || err.message);
     }
@@ -79,48 +81,54 @@ console.log(response.data)
   //______Editing___user_______
 
 
-const updateUser=(userData)=>{
-  console.log(userData)
-}
+  const updateUser = (userData) => {
+    console.log(userData)
+  }
 
 
 
   const logout = () => {
     const log_out = confirm("Are You Sure !")
     if (log_out) {
-      setUser(null)
+      setAuth(null)
+      localStorage.removeItem("accessToken")
       localStorage.removeItem("user")
-      localStorage.removeItem("role")
       navigate('/')
     }
-
   }
 
 
 
   //______Admin___Side
 
+
+
+
   const toggleUser = async (id, Authenticated) => {
-    if (user.id == id) {
+    if (auth.id == id) {
       setUserAuthenticated(Authenticated)//toggled value
-      setUser(null)
+      setAuth(null)
       localStorage.removeItem("user")
       localStorage.removeItem("role")
     }
     await Axios_instance.patch(`/users/${id}`, { isAuthenticated: Authenticated });
   }
 
-  const adminLogout=()=>{
+
+
+
+
+  const adminLogout = () => {
     toast.success("Log out Successfully")
     localStorage.removeItem("role")
-    setUser(null)
+    setAuth(null)
     navigate("/login")
   }
 
 
 
 
-  return (<AuthContext.Provider value={{ user, signup, login, logout, toggleUser,adminLogout,updateUser  }}>
+  return (<AuthContext.Provider value={{ auth, signup, login, logout, toggleUser, adminLogout, updateUser }}>
     {children}
   </AuthContext.Provider>)
 }

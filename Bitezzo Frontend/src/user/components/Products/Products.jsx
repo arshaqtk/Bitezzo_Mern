@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useContext } from 'react';
-// import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../../../context/CartContext';
 import { WishListContext } from '../../../context/WishlistContext';
 import { AuthContext } from '../../../context/AuthContext';
@@ -9,7 +8,7 @@ import ProductListView from './listview';
 import ProductGridView from './gridView';
 
 function Products() {
-  // const [allProducts, setAllProducts] = useState([]);
+
   const [product, setProduct] = useState([]);
   const [sortBy, setSortBy] = useState('relevance');
   const [viewMode, setViewMode] = useState('grid');
@@ -21,7 +20,6 @@ function Products() {
   const { products, loading ,filterProductCategory} = useContext(ProductContext);
 
   useEffect(() => {
-    // setAllProducts(products);
     setProduct(products);
   }, [products]);
   useEffect(() => {
@@ -32,17 +30,6 @@ function Products() {
   function filterProduct(category) {
     setSelectedCategory(category);
    filterProductCategory(category)
-
-    // let filtered = [];
-
-    // if (category === "all") {
-    //   filtered = allProducts;
-    // } else {
-    //   filtered = allProducts.filter((item) => item.category === category);
-    // }
-
-    // Apply sorting to filtered results
-    // applySorting(filtered);
   }
 
   const applySorting = (items, sortType = sortBy) => {

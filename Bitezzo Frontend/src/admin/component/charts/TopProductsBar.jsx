@@ -15,13 +15,11 @@ const COLOR_PALETTE = [
 ];
 
 export default function TopProductsBar({ data }) {
-  // data: [{ name, count }]
-  
-  // Custom tooltip component
+ 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const rank = data.findIndex(item => item.name === label) + 1;
-      const totalProducts = data.reduce((sum, item) => sum + item.count, 0);
+      const totalProducts = data.reduce((sum, item) => sum + item.totalSold, 0);
       const percentage = ((payload[0].value / totalProducts) * 100).toFixed(1);
       
       return (
@@ -50,10 +48,10 @@ export default function TopProductsBar({ data }) {
   };
 
   // Calculate statistics
-  const totalQuantity = data.reduce((sum, item) => sum + item.count, 0);
+  const totalQuantity = data.reduce((sum, item) => sum + item.totalSold, 0);
   const averageQuantity = data.length > 0 ? (totalQuantity / data.length).toFixed(1) : 0;
   const topProduct = data[0]; // Assuming data is sorted
-  const maxCount = Math.max(...data.map(item => item.count));
+  const maxCount = Math.max(...data.map(item => item.totalSold));
 
   return (
     <div className="h-full flex flex-col">
@@ -111,7 +109,7 @@ export default function TopProductsBar({ data }) {
             
             {/* Enhanced Bar with different colors for each bar */}
             <Bar 
-              dataKey="count" 
+              dataKey="totalSold" 
               name="Quantity Sold"
               radius={[8, 8, 0, 0]}
               stroke="#fff"

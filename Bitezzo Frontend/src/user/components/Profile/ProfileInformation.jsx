@@ -5,21 +5,21 @@ import toast from 'react-hot-toast';
 import {User, Mail,MapPin,Edit3,Save,X,Phone} from "lucide-react";
 
 function ProfileInformation() {
-        const { user,updateUser } = useContext(AuthContext)
+        const { auth,updateUser } = useContext(AuthContext)
         
 
       const [editMode, setEditMode] = useState(false);
       const [profileData, setProfileData] = useState({
-          username: user.username || '',
-          email: user.email || '',
-        //   phone: user.phone || '',
+          username: auth.name || '',
+          email: auth.email || '',
+          phone: auth.phone || '',
         //   shippingAddress: user.shippingAddress || '',
         });
-        console.log(user.phone)
+       
 
     useEffect(()=>{
          const fetchData=async ()=>{
-              const response = await Axios_instance.get(`/users?id=${user.id}`);
+              const response = await Axios_instance.get(`/users?id=${auth.id}`);
                      const userData = response.data[0];      
                       setProfileData(userData)
                       console.log(userData)
@@ -35,8 +35,8 @@ function ProfileInformation() {
         const handleProfileSubmit = async (e) => {
           e.preventDefault();
           try {
-            await Axios_instance.patch(`/users/${user.id}`, profileData);
-            updateUser({ ...user, ...profileData });
+            await Axios_instance.patch(`/users/${auth.id}`, profileData);
+            updateUser({ ...auth, ...profileData });
             toast.success("Profile updated successfully!");
             setEditMode(false);
           } catch (error) {

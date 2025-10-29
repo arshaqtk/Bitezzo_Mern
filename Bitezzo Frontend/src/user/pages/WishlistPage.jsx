@@ -10,7 +10,7 @@ function WishlistPage() {
   const navigate = useNavigate();
   const { removeWishlist, wishlistItems,fetchWishListData } = useContext(WishListContext);
   const { addToCart, cartItems } = useContext(CartContext);
-  const { user } = useContext(AuthContext);
+  const { auth } = useContext(AuthContext);
   const [wishlist, setWishlist] = useState([])
 
 
@@ -170,7 +170,7 @@ function WishlistPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               addToCart({
-                                user_id: user.id,
+                                user_id: auth.id,
                                 productId: item.product._id,
                                 name: item.product.name,
                                 price: item.product.price,

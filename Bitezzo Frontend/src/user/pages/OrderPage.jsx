@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 
 function OrderPage() {
     const { orderDetails, fetchOrderData } = useContext(OrderContext);
-    const { user } = useContext(AuthContext)
+
     const navigate = useNavigate()
 
 

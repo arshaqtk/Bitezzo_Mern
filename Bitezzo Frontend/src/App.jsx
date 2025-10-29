@@ -80,13 +80,7 @@ function App() {
                       </Route>
                     </Route>
 
-                    {/* Admin Protected Routes.
-                      The main fix is here:
-                      1. The parent route's element is AdminProtectedRoute.
-                      2. The child route's element is AdminInterface.
-                      3. All admin pages are children of the AdminInterface route,
-                         so they will be rendered inside its <Outlet>.
-                    */}
+                  
                     <Route element={<AdminProtectedRoute />}>
                       <Route path="/admin" element={<AdminInterface />}>
                         <Route index element={<AdminDashboard />} /> {/* This will match "/admin" */}

@@ -25,8 +25,7 @@ function HomePage() {
 
 
 
-  const { user } = useContext(AuthContext);
-  const { addToCart,fetchCartData } = useContext(CartContext);
+  const { addToCart } = useContext(CartContext);
   const { addToWishlist, wishlistItems } = useContext(WishListContext);
 
   // Initialize AOS

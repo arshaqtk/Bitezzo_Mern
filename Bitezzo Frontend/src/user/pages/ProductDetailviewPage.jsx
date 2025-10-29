@@ -14,7 +14,7 @@ function ProductDetailView() {
   const navigate = useNavigate();
   const { addToCart, cartItems } = useContext(CartContext);
   const { addToWishlist, wishlistItems } = useContext(WishListContext);
-  const { user } = useContext(AuthContext);
+  const { auth } = useContext(AuthContext);
 
   useEffect(() => {
   async function fetchData() {
@@ -259,7 +259,7 @@ return (
                         onClick={(e) => {
                           e.stopPropagation();
                           addToWishlist({
-                            user_id: user.id,
+                            user_id: auth.id,
                             productId: item.id,
                             name: item.name,
                             price: item.price,

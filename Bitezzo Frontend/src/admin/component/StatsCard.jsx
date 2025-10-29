@@ -2,11 +2,11 @@ export default function StatsCards({ stats }) {
   // stats = { totalUsers, totalOrders, totalRevenue, totalProducts }
   const fmtCurrency = (n) =>
     typeof n === "number" ? n.toLocaleString("en-IN", { style: "currency", currency: "INR" }) : n;
-
+console.log(stats)
   const items = [
     { 
       label: "Total Users", 
-      value: stats.totalUsers,
+      value: stats.userCount,
       icon: "👥",
       color: "blue",
       bgGradient: "from-blue-500 to-blue-600",
@@ -14,7 +14,7 @@ export default function StatsCards({ stats }) {
     },
     { 
       label: "Total Products", 
-      value: stats.totalProducts,
+      value: stats.productCount,
       icon: "📦",
       color: "green",
       bgGradient: "from-green-500 to-green-600",
@@ -22,7 +22,7 @@ export default function StatsCards({ stats }) {
     },
     { 
       label: "Total Orders", 
-      value: stats.totalOrders,
+      value: stats.orderCount,
       icon: "🛒",
       color: "purple",
       bgGradient: "from-purple-500 to-purple-600",

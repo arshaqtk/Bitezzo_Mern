@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 
 function PaymentPage() {
   const { shippingDetails, addCartPayment, addBuyNowPayment } = useContext(OrderContext)
-  const { user } = useContext(AuthContext)
+
   const { totalAmount } = useContext(OrderContext)
   
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('Razorpay');

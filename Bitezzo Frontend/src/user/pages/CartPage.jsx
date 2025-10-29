@@ -13,8 +13,8 @@ function Cartpage() {
   const deliveryFee = subTotal > 500 ? 0 : 20;
   const tax = Math.round(subTotal * 0.05); // 5% tax
   const total = subTotal + deliveryFee + tax - discount;
-console.log(cartItems)
-  // Initialize AOS
+
+
   useEffect(() => {
     AOS.init({
       duration: 600,

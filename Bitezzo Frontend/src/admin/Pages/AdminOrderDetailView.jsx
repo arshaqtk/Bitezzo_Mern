@@ -1,24 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { OrderContext } from '../../context/OrderContext';
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Package, 
-  Calendar, 
-  CreditCard, 
-  User, 
-  Phone, 
-  Mail,
-  Clock,
-  CheckCircle,
-  Truck,
-  XCircle,
-  AlertCircle,
-  DollarSign,
-  Hash,
-  Save
-} from 'lucide-react';
+import { ArrowLeft, MapPin,   Package, Calendar, CreditCard, User, Phone, Mail,Clock,CheckCircle,  Truck,XCircle,AlertCircle,DollarSign,Hash,} from 'lucide-react';
 
 function AdminOrderDetailView() {
   const { fetchAllOrderData, allOrder, editOrderStatus } = useContext(OrderContext);
@@ -230,7 +213,7 @@ function AdminOrderDetailView() {
                   { icon: MapPin, label: 'City', value: order.shippingAddress.city },
                   { icon: Hash, label: 'Pincode', value: order.shippingAddress.pincode },
                   { icon: Phone, label: 'Phone', value: order.shippingAddress.phone },
-                ].map(({ icon: Icon, label, value }) => (
+                ].map(({ icon: label, value }) => (
                   <div key={label} className="flex items-start space-x-3">
                     <div className="p-2 rounded-lg bg-gray-100">
                       <Icon className="w-4 h-4 text-gray-600" />

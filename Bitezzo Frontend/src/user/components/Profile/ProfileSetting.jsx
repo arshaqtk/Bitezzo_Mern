@@ -5,7 +5,7 @@ import { AuthContext } from '../../../context/AuthContext';
 import {Lock,Eye,EyeOff,Settings,Bell,Shield} from "lucide-react";
 
 function ProfileSetting() {
-    const { user } = useContext(AuthContext)
+    const { auth } = useContext(AuthContext)
  
     const [showPassword, setShowPassword] = useState({
         current: false,
@@ -42,7 +42,7 @@ function ProfileSetting() {
                 return;
             }
 
-            const response = await Axios_instance.get(`/users?id=${user.id}`);
+            const response = await Axios_instance.get(`/users?id=${auth.id}`);
             const userData = response.data[0];
 
             if (userData.password !== passwordData.currentPassword) {
@@ -50,7 +50,7 @@ function ProfileSetting() {
                 return;
             }
 
-            await Axios_instance.patch(`/users/${user.id}`, {
+            await Axios_instance.patch(`/users/${auth.id}`, {
                 password: passwordData.newPassword,
             });
 

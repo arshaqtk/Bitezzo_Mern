@@ -14,6 +14,7 @@ const PALETTE = [
 
 export default function OrdersStatusPie({ data }) {
   // data: [{ status, count }]
+  console.log(data)
   
   const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {

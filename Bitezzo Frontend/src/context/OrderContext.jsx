@@ -61,13 +61,11 @@ export const OrderProvider = ({ children }) => {
    const addCartPayment = async ({ paymentId, method, totalAmount, type }) => {
 
       try {
-         // const userResponse = await Axios_instance.get(`users/${user.id}`)
-         // const userResponseData = userResponse.data
-         // const order = [{ id: Date.now(),userId:user.id,products: cartItems, status:"pending",paymentType:type.type,payment: paymentId, subTotal: subtotal, date: new Date().toISOString().split("T")[0], shippingAddress: shippingDetails },...userResponseData.orders ]
-         console.log(method, totalAmount, type)
+      
+        
 
-         const order = await Axios_instance.post("/order/from-cart", { address: shippingDetails, total: totalAmount, deliverySpeed: method, paymentMethod: type }, { withCredentials: true })
-         console.log(order)
+         const order = await Axios_instance.post("/order/from-cart",
+             { address: shippingDetails, total: totalAmount, deliverySpeed: method, paymentMethod: type }, { withCredentials: true })
          if (order.status == 201) {
             toast.success("Ordered Successfully");
             setOrderDetails(order)
@@ -75,24 +73,8 @@ export const OrderProvider = ({ children }) => {
             navigate("/products")
          }
 
-         // for (const item of cartItems) {
-         //    const {data} = await Axios_instance.get(`products/${item.productId}`)
-         //    data.quantity = data.quantity - item.productQuantity;
-         //    console.log("Updated product quantity:", data.quantity);
-         //    await Axios_instance.patch(`products/${item.productId}`, { quantity: data.quantity })
-         // }
-
          fetchAllOrderData()
-         // if (response.data) {
-         //    try{
-         //        await Axios_instance.patch(`users/${user.id}`, { cart: [] })
-         //    fetchCartData()
-         //    await updateTopSellingProducts(cartItems);
-         //    }catch(e){
-         //       console.log(e)
-         //    }
-
-         // }
+       
       } catch (err) {
          toast.error(err.response?.data?.message || "Issue in  Ordering");
          console.error("Axios Order error:", err.response?.data || err.message);
@@ -105,22 +87,10 @@ export const OrderProvider = ({ children }) => {
    const addBuyNowPayment = async ({ paymentId, method, quantity = 1, totalAmount, price, productId, type }) => {
 
       try {
-         // console.log(type.type)
-         // const product = await Axios_instance.get(`products/${productId}`)
-         // const ProductData = { productId: product.data.id, productName: product.data.name, productPrice: product.data.price, productImage: product.data.image, productQuantity: 1 }
+       
 
-         // const userResponse = await Axios_instance.get(`users/${user.id}`)
-         // const userResponseData = userResponse.data
-         // const order = [ { id: Date.now(), products: [ProductData],userId:user.id, status:"pending",paymentType:type.type,payment: paymentId, subTotal: subtotal, date: new Date().toISOString().split("T")[0], shippingAddress: shippingDetails },...userResponseData.orders]
-
-         // setOrderDetails(order)
-         // await Axios_instance.patch(`users/${user.id}`, { orders: order })
-         // fetchAllOrderData()
-         // await updateTopSellingProducts([ProductData]);
-         // navigate("/products")
-
-
-         const order = await Axios_instance.post("/order/direct", { productId, price, quantity, address: shippingDetails, total: totalAmount, deliverySpeed: method, paymentMethod: type }, { withCredentials: true })
+         const order = await Axios_instance.post("/order/direct", 
+            { productId, price, quantity, address: shippingDetails, total: totalAmount, deliverySpeed: method, paymentMethod: type }, { withCredentials: true })
          if (order.status == 201) {
             toast.success("Ordered Successfully");
          }
@@ -161,6 +131,8 @@ export const OrderProvider = ({ children }) => {
 
 
    //______Admin__________
+
+   
    const fetchAllOrderData = async () => {
       try {
          const response = await Axios_instance.get('/users?role=user')
@@ -173,6 +145,8 @@ export const OrderProvider = ({ children }) => {
          console.log(e)
       }
    }
+
+
    const editOrderStatus = async (orderId, newStatus, userId) => {
       try {
          console.log("now", orderId, newStatus)
