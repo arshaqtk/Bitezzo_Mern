@@ -17,8 +17,8 @@ export const ProductProvider = ({ children }) => {
     const fetchProductData = async () => {
         setLoading(true);
         try {
-            const response = await Axios_instance.get("http://localhost:5000/products/")
-            const Products = response.data
+            const response = await Axios_instance.get("/products")
+            const Products = response.data.products
             setProducts(Products)
             setLoading(false);
         } catch (e) {

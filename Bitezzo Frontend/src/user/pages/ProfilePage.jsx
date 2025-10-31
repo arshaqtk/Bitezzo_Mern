@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import Axios_instance from "../../api/axiosConfig";
 import toast from "react-hot-toast";
-import {User, Camera,Settings, Heart, ShoppingBag, Star, Award} from "lucide-react";
+import { User, Camera, Settings, Heart, ShoppingBag, Star, Award } from "lucide-react";
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import ProfileSetting from "../components/Profile/ProfileSetting";
@@ -12,14 +12,12 @@ import axios from "axios";
 function ProfilePage() {
   const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('profile');
-  const [userData,setUserData]=useState([])
-  
-  const [stats,setSats] = useState({
+  const [userData, setUserData] = useState([])
+  const [stats, setSats] = useState({
     totalOrders: 0,
     favoriteItems: 0,
     totalSpent: 0,
-    loyaltyPoints: 0
-  });
+    loyaltyPoint: 0});
 
 
 
@@ -30,25 +28,53 @@ function ProfilePage() {
       easing: 'ease-in-out',
       once: true
     });
-    const fetchData=async ()=>{
-      const response = await Axios_instance.get("/user/profile", {withCredentials: true});
-             const userData = response.data;
-             setUserData(userData)
-          
-            //  const orders=userData.orders.length
-            //  const wishlist=userData.wishlist.length
-            //  const totalExpense=userData.orders.reduce((total,item)=>total+=item.subTotal,0)
-            //  const loyaltyPoints=(userData.orders.length)*100
-            //  setSats({...stats,totalOrders:orders,favoriteItems:wishlist,totalSpent:totalExpense,loyaltyPoints})
+    const fetchData = async () => {
+      const response = await Axios_instance.get("/user/profile", { withCredentials: true });
+      const userData = response.data;
+      setUserData(userData)
+      const profileStats= await Axios_instance.get("/user/profile/stats", { withCredentials: true });
+      setSats(profileStats.data)
     }
     fetchData()
   }, []);
 
- 
-  const handleImageUpload = () => {
-    // Placeholder for image upload functionality
-    toast.info("Image upload feature coming soon!");
-  };
+
+const handleFileChange = async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowedTypes.includes(file.type)) {
+    toast.error("Only JPG, PNG, and WEBP formats are allowed");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("avatar", file);
+  const loadingToast = toast.loading("Updating profile image...");
+
+  try {
+    const response = await Axios_instance.patch(
+      "user/profile/image",
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      }
+    );
+
+   
+    const preview = URL.createObjectURL(file);
+    setUserData((prev) => ({ ...prev, image: preview }));
+
+    toast.dismiss(loadingToast);
+    toast.success("Profile image updated successfully ");
+  } catch (error) {
+    console.error("Image upload failed:", error);
+    toast.dismiss(loadingToast);
+    toast.error("Something went wrong. Please try again");
+  }
+};
 
 
   const tabs = [
@@ -60,40 +86,52 @@ function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Profile Header */}
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden mb-8" data-aos="fade-down">
           <div className="bg-gradient-to-r from-orange-500 to-red-500 px-8 py-12 text-white relative  opacity-75 backdrop-blur-lg shadow-lg">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-24 -translate-x-24"></div>
-            
+
             <div className="relative flex flex-col md:flex-row items-center md:items-start gap-6">
               <div className="relative">
                 <img
-                  src={userData.image}
+                  src={userData.avatar || "/default-avatar.png"} // fallback image
                   alt="Profile"
                   className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
                 />
+
+                {/* Hidden file input */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="profileImageInput"
+                  className="hidden"
+                  name="avatar"
+                  onChange={handleFileChange}
+                />
+
                 <button
-                  onClick={handleImageUpload}
+                  onClick={() => document.getElementById("profileImageInput").click()}
                   className="absolute bottom-2 right-2 bg-white text-orange-500 p-2 rounded-full shadow-lg hover:bg-gray-50 transition-colors duration-200"
                 >
                   <Camera className="w-4 h-4" />
                 </button>
               </div>
-              
+
+
               <div className="text-center md:text-left flex-1">
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">{userData.username}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold mb-2">{userData.name}</h1>
                 <p className="text-white/80 text-lg mb-4">{userData.email}</p>
                 <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                  {stats.loyaltyPoints>500? <div className="flex items-center gap-2">
+                  {stats.loyaltyPoint > 500 ? <div className="flex items-center gap-2">
                     <Award className="w-5 h-5" />
                     <span>Gold Member</span>
-                  </div>:""}
-                 
+                  </div> : ""}
+
                   <div className="flex items-center gap-2">
                     <Star className="w-5 h-5" />
-                    <span>{stats.loyaltyPoints} Points</span>
+                    <span>{stats.loyaltyPoint} Points</span>
                   </div>
                 </div>
               </div>
@@ -107,9 +145,9 @@ function ProfilePage() {
             { label: 'Total Orders', value: stats.totalOrders, icon: ShoppingBag, color: 'blue' },
             { label: 'Favorites', value: stats.favoriteItems, icon: Heart, color: 'red' },
             { label: 'Total Spent', value: `₹${stats.totalSpent}`, icon: Award, color: 'green' },
-            { label: 'Loyalty Points', value: stats.loyaltyPoints, icon: Star, color: 'yellow' }
+            { label: 'Loyalty Points', value: stats.loyaltyPoint, icon: Star, color: 'yellow' }
           ].map((stat, index) => (
-            <div 
+            <div
               key={stat.label}
               data-aos="fade-up"
               data-aos-delay={index * 100}
@@ -126,7 +164,7 @@ function ProfilePage() {
 
         {/* Main Content */}
         <div className="grid lg:grid-cols-4 gap-8">
-          
+
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1" data-aos="fade-right">
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
@@ -136,11 +174,10 @@ function ProfilePage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors duration-200 ${
-                      activeTab === tab.id
-                        ? 'bg-orange-100 text-orange-600 font-semibold'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors duration-200 ${activeTab === tab.id
+                      ? 'bg-orange-100 text-orange-600 font-semibold'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
                   >
                     <tab.icon className="w-5 h-5" />
                     {tab.label}
@@ -152,20 +189,20 @@ function ProfilePage() {
 
           {/* Main Content Area */}
           <div className="lg:col-span-3" data-aos="fade-left">
-            
+
             {/* Profile Tab */}
-            {/* {activeTab === 'profile' && (
-             <ProfileInformation/>
-            )} */}
+            {activeTab === 'profile' && (
+              <ProfileInformation />
+            )}
 
             {/* Orders Tab */}
-            {/* {activeTab === 'orders' && (
+            {activeTab === 'orders' && (
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
                 <div className="p-8">
                   <h2 className="text-2xl font-bold text-gray-900 mb-8">Recent Orders</h2>
-                  
+
                   <div className="space-y-4">
-                    {recentOrders.map((order, index) => (
+                    {/* {recentOrders.map((order, index) => (
                       <div
                         key={order.id}
                         data-aos="fade-up"
@@ -197,9 +234,9 @@ function ProfilePage() {
                           </div>
                         </div>
                       </div>
-                    ))}
+                    ))} */}
                   </div>
-                  
+
                   <div className="text-center mt-8">
                     <button className="px-6 py-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors duration-200">
                       View All Orders
@@ -207,13 +244,13 @@ function ProfilePage() {
                   </div>
                 </div>
               </div>
-            )} */}
+            )}
 
             {/* Settings Tab */}
 
-            {/* {activeTab === 'settings' && (
-              <ProfileSetting/>
-            )} */}
+            {activeTab === 'settings' && (
+              <ProfileSetting />
+            )}
           </div>
         </div>
       </div>

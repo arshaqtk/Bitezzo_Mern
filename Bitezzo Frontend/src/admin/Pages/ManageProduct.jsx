@@ -1,40 +1,65 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ProductContext } from "../../context/ProductContext";
 import { useNavigate } from "react-router-dom";
-import { Package, AlertTriangle, Search, Filter, Edit, Trash2, Plus, Eye, TrendingUp } from "lucide-react";
+import { Package, AlertTriangle, Search, Filter, Edit, Trash2, Plus, Eye, TrendingUp, Ban } from "lucide-react";
+import { getAllProduct, softDeleteProduct } from "../services/adminProductApi";
 
 const ProductTable = () => {
-  const { products, deleteProduct } = useContext(ProductContext);
+  const [products, setProducts] = useState([])
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
+    const [activeFilter, setActiveFilter] = useState("all");
+  
 
-  const handleDeleteProduct = async (productId) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      deleteProduct(productId);
+
+  const handleSoftDelete = async (productId) => {
+
+    const product = await softDeleteProduct(productId)
+    if(product.success){
+    setProducts(prev => prev.map((p) =>
+      p._id === productId ? { ...p, isActive: !p.isActive } : p
+    ))
+  }
+  }
+
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const products = await getAllProduct()
+      console.log(products)
+      setProducts(products)
     }
-  };
+    fetchProduct()
+  }, []);
 
   // Filter products based on search term, category, and stock status
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
+      product.description.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
-    const matchesStock = stockFilter === "all" || 
-                        (stockFilter === "instock" && product.quantity > 0) ||
-                        (stockFilter === "outofstock" && product.quantity === 0);
-    return matchesSearch && matchesCategory && matchesStock;
+    const matchesStock = stockFilter === "all" ||
+      (stockFilter === "instock" && product.count > 0) ||
+      (stockFilter === "outofstock" && product.count === 0);
+
+       const matchesActive =
+        activeFilter === "all" ||
+        (activeFilter === "active" && product.isActive === true) ||
+        (activeFilter === "inactive" && product.isActive === false);
+
+    return matchesSearch && matchesCategory && matchesStock&&matchesActive;
   });
 
   // Get unique categories
   const categories = [...new Set(products.map(p => p.category))];
 
-  // Calculate statistics
   const totalProducts = products.length;
-  const outOfStock = products.filter((p) => p.quantity === 0).length;
-  const lowStock = products.filter((p) => p.quantity > 0 && p.quantity <= 5).length;
-  const totalValue = products.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+  const lowStock = products.filter(p => p.stock < 10 && p.stock > 0).length;
+  const inactiveProducts = products.filter(p => !p.isActive).length;
+  const outOfStock = products.filter(p => p.stock === 0).length;
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -63,9 +88,10 @@ const ProductTable = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Total Products */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-blue-100">
@@ -77,19 +103,8 @@ const ProductTable = () => {
               </div>
             </div>
           </div>
-          
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-red-100">
-                <AlertTriangle className="h-6 w-6 text-red-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Out of Stock</p>
-                <p className="text-2xl font-bold text-red-600">{outOfStock}</p>
-              </div>
-            </div>
-          </div>
-          
+
+          {/* Low Stock */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-yellow-100">
@@ -101,15 +116,29 @@ const ProductTable = () => {
               </div>
             </div>
           </div>
-          
+
+          {/* Inactive Products */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-green-100">
-                <Package className="h-6 w-6 text-green-600" />
+              <div className="p-3 rounded-full bg-red-100">
+                <Ban className="h-6 w-6 text-red-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Value</p>
-                <p className="text-2xl font-bold text-green-600">₹{totalValue.toLocaleString('en-IN')}</p>
+                <p className="text-sm font-medium text-gray-600">Inactive Products</p>
+                <p className="text-2xl font-bold text-red-600">{inactiveProducts}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Out of Stock */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center">
+              <div className="p-3 rounded-full bg-gray-100">
+                <AlertTriangle className="h-6 w-6 text-gray-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Out of Stock</p>
+                <p className="text-2xl font-bold text-gray-700">{outOfStock}</p>
               </div>
             </div>
           </div>
@@ -133,7 +162,7 @@ const ProductTable = () => {
                 />
               </div>
             </div>
-            
+
             {/* Category Filter */}
             <div className="lg:w-48">
               <select
@@ -147,21 +176,33 @@ const ProductTable = () => {
                 ))}
               </select>
             </div>
-            
+
             {/* Stock Filter */}
-            <div className="lg:w-48">
-              <select
-                value={stockFilter}
-                onChange={(e) => setStockFilter(e.target.value)}
-                className="block w-full py-3 px-4 border border-gray-300 bg-gray-50 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-colors duration-200"
-              >
-                <option value="all">All Stock Status</option>
-                <option value="instock">In Stock</option>
-                <option value="outofstock">Out of Stock</option>
-              </select>
-            </div>
+            <div className="flex gap-4">
+        {/* Stock Filter */}
+        <select
+          value={stockFilter}
+          onChange={(e) => setStockFilter(e.target.value)}
+          className="py-2 px-3 border border-gray-300 rounded-lg"
+        >
+          <option value="all">All Stock Status</option>
+          <option value="instock">In Stock</option>
+          <option value="outofstock">Out of Stock</option>
+        </select>
+
+        {/* Active/Inactive Filter */}
+        <select
+          value={activeFilter}
+          onChange={(e) => setActiveFilter(e.target.value)}
+          className="py-2 px-3 border border-gray-300 rounded-lg"
+        >
+          <option value="all">All Activity</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
           </div>
-          
+
           <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
             <span>Showing {filteredProducts.length} of {totalProducts} products</span>
             {(searchTerm || categoryFilter !== "all" || stockFilter !== "all") && (
@@ -199,84 +240,107 @@ const ProductTable = () => {
                 {filteredProducts.length > 0 ? (
                   filteredProducts.map((product) => (
                     <tr
-                      key={product.id}
-                      className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-colors duration-200"
+                      key={product._id}
+                      className={`transition-colors duration-200 ${product.isActive
+                        ? "hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50"
+                        : "bg-red-200 text-gray-500"
+                        }`}
                     >
+
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-16 w-16">
                             <img
-                              className="h-16 w-16 rounded-lg object-cover border-2 border-gray-200"
-                              src={product.image}
+                              className={`h-16 w-16 rounded-lg object-cover border-2 ${product.isActive ? "border-gray-200" : "border-red-300 opacity-70"
+                                }`}
+                              src={product?.images[0]?.url}
                               alt={product.name}
                             />
+
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-semibold text-gray-900">{product.name}</div>
-                            <div className="text-xs text-gray-500">ID: {product.id}</div>
+                            <div className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                              {product.name}
+                              {!product.isActive && (
+                                <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+                                  Inactive
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="text-xs text-gray-500">ID: {product._id}</div>
                           </div>
                         </div>
                       </td>
-                      
+
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900 max-w-xs truncate" title={product.description}>
                           {product.description}
                         </div>
                       </td>
-                      
+
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                           {product.category}
                         </span>
                       </td>
-                      
+
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-bold text-green-600">
                           ₹{product.price.toLocaleString('en-IN')}
                         </div>
                       </td>
-                      
+
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {product.quantity === 0 ? (
+                        {product.count === 0 ? (
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 ring-1 ring-red-300">
                             Out of Stock
                           </span>
                         ) : product.quantity <= 5 ? (
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 ring-1 ring-yellow-300">
-                            Low Stock ({product.quantity})
+                            Low Stock ({product.count})
                           </span>
                         ) : (
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 ring-1 ring-green-300">
-                            In Stock ({product.quantity})
+                            In Stock ({product.count})
                           </span>
                         )}
                       </td>
-                      
+
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
                           <button
-                            onClick={() => navigate(`/admin/product-view/${product.id}`)}
+                            onClick={() => navigate(`/admin/product-view/${product._id}`)}
                             className="inline-flex items-center p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
                             title="View Product"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
-                          
+
                           <button
-                            onClick={() => navigate(`/admin/edit-product/${product.id}`)}
+                            onClick={() => navigate(`/admin/edit-product/${product._id}`)}
                             className="inline-flex items-center p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
                             title="Edit Product"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
-                          
-                          <button
-                            onClick={() => handleDeleteProduct(product.id)}
-                            className="inline-flex items-center p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                            title="Delete Product"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+
+                          {product.isActive ? (
+                            <button
+                              onClick={() => handleSoftDelete(product._id)}
+                              className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition"
+                            >
+                              Deactivate
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleSoftDelete(product._id)}
+                              className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition"
+                            >
+                              Activate
+                            </button>
+                          )}
+
                         </div>
                       </td>
                     </tr>
@@ -299,6 +363,6 @@ const ProductTable = () => {
       </div>
     </div>
   );
-};
+}
 
 export default ProductTable;

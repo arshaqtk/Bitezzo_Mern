@@ -1,4 +1,3 @@
-import axios from "axios"
 import adminAxiosInstace from "./adminApi"
 import toast from "react-hot-toast"
 

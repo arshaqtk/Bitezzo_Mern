@@ -2,39 +2,53 @@ import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ProductContext } from "../../context/ProductContext";
 import { ArrowLeft, Upload, Eye, Save, X, Package, Tag, DollarSign, Hash, Image as ImageIcon } from "lucide-react";
+import { addProduct } from "../services/adminProductApi";
 
 function AddProduct() {
   const navigate = useNavigate();
-  const { addProduct } = useContext(ProductContext);
 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
-    quantity: '',
-    image: '',
+    count: '',
+    images: [],
     category: ''
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [imagePreviews, setImagePreviews] = useState([]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    
-    // Reset image error when image URL changes
-    if (name === 'image') {
+    const { name, value, type, files } = e.target;
+    if (type === 'file') {
+      const fileList = Array.from(files);
+      setFormData((prev) => ({ ...prev, images: fileList }));
+      setImagePreviews(fileList.map(file => URL.createObjectURL(file)));
       setImageError(false);
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
+    const data = new FormData();
+    Object.keys(formData).forEach((key) => {
+      if (key === 'images') {
+        formData.images.forEach((img) => data.append('images', img));
+      } else {
+        data.append(key, formData[key]);
+      }
+    });
     try {
-      await addProduct(formData);
-      navigate("/admin/products");
+      const res = await addProduct(data);
+      if (res.success) {
+        navigate("/admin/products");
+      }
     } catch (error) {
       console.error("Error adding product:", error);
     } finally {
@@ -43,9 +57,11 @@ function AddProduct() {
   };
 
   const onCancel = () => {
-    const hasChanges = Object.values(formData).some(value => value !== '');
+    const hasChanges = Object.values(formData).some(
+      value => (Array.isArray(value) ? value.length > 0 : value !== '')
+    );
     if (hasChanges) {
-      const res = confirm("Are you sure you want to cancel? All changes will be lost.");
+      const res = window.confirm("Are you sure you want to cancel? All changes will be lost.");
       if (res) {
         navigate("/admin/products");
       }
@@ -95,8 +111,8 @@ function AddProduct() {
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <form onSubmit={handleSubmit} className="space-y-8">
-          
+        <form onSubmit={handleSubmit} className="space-y-8" >
+
           {/* Basic Information */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
@@ -106,7 +122,6 @@ function AddProduct() {
               </h3>
             </div>
             <div className="p-6 space-y-6">
-              
               {/* Product Name */}
               <div>
                 <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
@@ -182,7 +197,6 @@ function AddProduct() {
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
                 {/* Price */}
                 <div>
                   <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
@@ -205,16 +219,16 @@ function AddProduct() {
                   </div>
                 </div>
 
-                {/* Quantity */}
+                {/* count */}
                 <div>
                   <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
                     <Hash className="w-4 h-4 mr-2 text-gray-500" />
-                    Stock Quantity *
+                    Stock count *
                   </label>
                   <input
                     type="number"
-                    name="quantity"
-                    value={formData.quantity}
+                    name="count"
+                    value={formData.count}
                     onChange={handleChange}
                     placeholder="0"
                     min="0"
@@ -234,53 +248,52 @@ function AddProduct() {
             <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <ImageIcon className="w-5 h-5 mr-2 text-purple-600" />
-                Product Image
+                Product Images
               </h3>
             </div>
             <div className="p-6">
               <div>
                 <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
                   <Upload className="w-4 h-4 mr-2 text-gray-500" />
-                  Image URL
+                  Upload Image(s) *
                 </label>
                 <input
-                  type="url"
-                  name="image"
-                  value={formData.image}
+                  type="file"
+                  name="images"
+                  multiple
+                  accept="image/*"
                   onChange={handleChange}
-                  placeholder="https://example.com/product-image.jpg"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-all duration-200"
+                  required
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Enter a valid URL for the product image
+                  Select and upload product image(s) from your device
                 </p>
               </div>
 
               {/* Image Preview */}
-              {formData.image && (
-                <div className="mt-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Image Preview
-                  </h4>
-                  <div className="relative inline-block">
-                    {!imageError ? (
-                      <img
-                        src={formData.image}
-                        alt="Product preview"
-                        className="w-40 h-40 object-cover rounded-lg border-2 border-gray-200 shadow-sm"
-                        onError={handleImageError}
-                        onLoad={handleImageLoad}
-                      />
-                    ) : (
-                      <div className="w-40 h-40 bg-gray-100 rounded-lg border-2 border-gray-200 flex items-center justify-center">
-                        <div className="text-center">
-                          <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-xs text-gray-500">Image not found</p>
+              {imagePreviews.length > 0 && (
+                <div className="mt-6 flex flex-wrap gap-4">
+                  {imagePreviews.map((src, idx) => (
+                    <div key={idx} className="relative inline-block">
+                      {!imageError ? (
+                        <img
+                          src={src}
+                          alt={`Product preview ${idx + 1}`}
+                          className="w-40 h-40 object-cover rounded-lg border-2 border-gray-200 shadow-sm"
+                          onError={handleImageError}
+                          onLoad={handleImageLoad}
+                        />
+                      ) : (
+                        <div className="w-40 h-40 bg-gray-100 rounded-lg border-2 border-gray-200 flex items-center justify-center">
+                          <div className="text-center">
+                            <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                            <p className="text-xs text-gray-500">Image not found</p>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -296,7 +309,7 @@ function AddProduct() {
               <X className="w-4 h-4 mr-2" />
               Cancel
             </button>
-            
+
             <div className="flex space-x-3">
               <button
                 type="submit"

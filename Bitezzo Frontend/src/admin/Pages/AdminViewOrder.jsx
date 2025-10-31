@@ -1,13 +1,13 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, {  useEffect, useMemo, useState } from "react";
 import { OrderContext } from "../../context/OrderContext";
 import { useNavigate } from "react-router-dom";
-import { 
-  Clock, 
-  CheckCircle2, 
-  Truck, 
-  XCircle, 
-  Search, 
-  Filter, 
+import {
+  Clock,
+  CheckCircle2,
+  Truck,
+  XCircle,
+  Search,
+  Filter,
   Calendar,
   Package,
   User,
@@ -15,103 +15,91 @@ import {
   Eye,
   RefreshCw
 } from "lucide-react";
+import { getAllOrders } from "../services/adminOrderApi";
 
 function AdminViewOrder() {
-  const { fetchAllOrderData, allOrder } = useContext(OrderContext);
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("");  // Only store status filter
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("");
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadOrders = async () => {
+    async function fetchOrders() {
       setLoading(true);
-      await fetchAllOrderData();
+      try {
+        const data = await getAllOrders();
+        setOrders(data || []);
+      } catch (e) {
+        setOrders([]);
+      }
       setLoading(false);
-    };
-    loadOrders();
+    }
+    fetchOrders();
   }, []);
 
-  // Filter orders by status
-  const filterOrders = (status) => {
-    const filtered = allOrder.filter(
-      (order) => order.status.toLowerCase() === status.toLowerCase()
-    );
-    setOrders(filtered);
-  };
 
-  // Reset filter (show all orders)
+  const filteredOrders = useMemo(() => {
+    let result = orders;
+
+    if (statusFilter) {
+      result = result.filter(o =>
+        o.status?.toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
+    if (searchTerm) {
+      const s = searchTerm.trim().toLowerCase();
+      result = result.filter(o =>
+        o._id?.toString().includes(s) ||
+        o.address?.name?.toLowerCase().includes(s) ||
+        o.address?.email?.toLowerCase().includes(s)
+      );
+    }
+    if (dateFilter) {
+      result = result.filter(o =>
+        o.date && o.date.includes(dateFilter)
+      );
+    }
+    return result;
+  }, [orders, statusFilter, searchTerm, dateFilter]);
+
+
   const resetFilter = () => {
-    setOrders([]);
+    setStatusFilter("");
     setSearchTerm("");
     setDateFilter("");
   };
 
-  // Apply search and date filters
-  const getFilteredOrders = () => {
-    let filtered = orders.length > 0 ? orders : allOrder;
-    
-    if (searchTerm) {
-      filtered = filtered.filter(order => 
-        order.id.toString().includes(searchTerm) ||
-        order.shippingAddress.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.shippingAddress.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    if (dateFilter) {
-      filtered = filtered.filter(order => 
-        order.date.includes(dateFilter)
-      );
-    }
-    
-    return filtered;
-  };
 
-  // Counts
-  const pendingCount = allOrder.filter(o => o.status.toLowerCase() === "pending").length;
-  const confirmedCount = allOrder.filter(o => o.status.toLowerCase() === "confirmed").length;
-  const deliveredCount = allOrder.filter(o => o.status.toLowerCase() === "delivered").length;
-  const canceledCount = allOrder.filter(o => o.status.toLowerCase() === "canceled").length;
+  const pendingCount = orders.filter(o => o.status?.toLowerCase() === "pending").length;
+  const confirmedCount = orders.filter(o => o.status?.toLowerCase() === "confirmed").length;
+  const deliveredCount = orders.filter(o => o.status?.toLowerCase() === "delivered").length;
+  const canceledCount = orders.filter(o => o.status?.toLowerCase() === "cancelled").length;
 
-  // Calculate total revenue
-  const totalRevenue = allOrder.reduce((sum, order) => sum + parseFloat(order.subTotal), 0);
+  // Total revenue from all orders
+  const totalRevenue = orders.reduce((sum, o) => sum + parseFloat(o.total ?? 0), 0);
 
-  // Function to determine status badge colors
+
   const getStatusBadge = (status) => {
-    const statusLower = status.toLowerCase();
-    switch (statusLower) {
-      case "pending":
-        return "bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 ring-1 ring-yellow-300";
-      case "canceled":
-        return "bg-gradient-to-r from-red-100 to-rose-100 text-red-800 ring-1 ring-red-300";
-      case "delivered":
-        return "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 ring-1 ring-green-300";
-      case "confirmed":
-        return "bg-gradient-to-r from-blue-100 to-sky-100 text-blue-800 ring-1 ring-blue-300";
-      default:
-        return "bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 ring-1 ring-gray-300";
+    switch ((status || "").toLowerCase()) {
+      case "pending": return "bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 ring-1 ring-yellow-300";
+      case "cancelled": return "bg-gradient-to-r from-red-100 to-rose-100 text-red-800 ring-1 ring-red-300";
+      case "delivered": return "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 ring-1 ring-green-300";
+      case "confirmed": return "bg-gradient-to-r from-blue-100 to-sky-100 text-blue-800 ring-1 ring-blue-300";
+      default: return "bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 ring-1 ring-gray-300";
     }
   };
 
   const getStatusIcon = (status) => {
-    const statusLower = status.toLowerCase();
-    switch (statusLower) {
-      case "pending":
-        return <Clock className="w-4 h-4" />;
-      case "canceled":
-        return <XCircle className="w-4 h-4" />;
-      case "delivered":
-        return <CheckCircle2 className="w-4 h-4" />;
-      case "confirmed":
-        return <Truck className="w-4 h-4" />;
-      default:
-        return <Package className="w-4 h-4" />;
+    switch ((status || "").toLowerCase()) {
+      case "pending": return <Clock className="w-4 h-4" />;
+      case "cancelled": return <XCircle className="w-4 h-4" />;
+      case "delivered": return <CheckCircle2 className="w-4 h-4" />;
+      case "confirmed": return <Truck className="w-4 h-4" />;
+      default: return <Package className="w-4 h-4" />;
     }
   };
-
-  const filteredOrders = getFilteredOrders();
 
   if (loading) {
     return (
@@ -131,29 +119,29 @@ function AdminViewOrder() {
       {/* Header Section */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Order Management</h1>
-                <p className="mt-1 text-sm text-gray-600">
-                  Monitor and manage all customer orders
-                </p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-                  <div className="flex items-center space-x-2 text-sm">
-                    <DollarSign className="w-4 h-4 text-blue-600" />
-                    <span className="text-gray-600">Total Revenue: </span>
-                    <span className="font-semibold text-blue-700">₹{totalRevenue.toLocaleString('en-IN')}</span>
-                  </div>
+          <div className="py-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Order Management</h1>
+              <p className="mt-1 text-sm text-gray-600">
+                Monitor and manage all customer orders
+              </p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+                <div className="flex items-center space-x-2 text-sm">
+                  <DollarSign className="w-4 h-4 text-blue-600" />
+                  <span className="text-gray-600">Total Revenue: </span>
+                  <span className="font-semibold text-blue-700">
+                    ₹{totalRevenue.toLocaleString('en-IN')}
+                  </span>
                 </div>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                >
-                  <RefreshCw className="w-5 h-5" />
-                </button>
               </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </div>
@@ -161,11 +149,10 @@ function AdminViewOrder() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div
-            onClick={() => filterOrders("pending")}
+            onClick={() => setStatusFilter("pending")}
             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md hover:scale-105 transition-all duration-200 group"
           >
             <div className="flex items-center">
@@ -180,7 +167,7 @@ function AdminViewOrder() {
           </div>
 
           <div
-            onClick={() => filterOrders("confirmed")}
+            onClick={() => setStatusFilter("confirmed")}
             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md hover:scale-105 transition-all duration-200 group"
           >
             <div className="flex items-center">
@@ -195,7 +182,7 @@ function AdminViewOrder() {
           </div>
 
           <div
-            onClick={() => filterOrders("delivered")}
+            onClick={() => setStatusFilter("delivered")}
             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md hover:scale-105 transition-all duration-200 group"
           >
             <div className="flex items-center">
@@ -210,7 +197,7 @@ function AdminViewOrder() {
           </div>
 
           <div
-            onClick={() => filterOrders("canceled")}
+            onClick={() => setStatusFilter("cancelled")}
             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md hover:scale-105 transition-all duration-200 group"
           >
             <div className="flex items-center">
@@ -238,12 +225,11 @@ function AdminViewOrder() {
                   type="text"
                   placeholder="Search by Order ID, customer name, or email..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors duration-200"
                 />
               </div>
             </div>
-            
             {/* Date Filter */}
             <div className="lg:w-48">
               <div className="relative">
@@ -253,16 +239,15 @@ function AdminViewOrder() {
                 <input
                   type="date"
                   value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
+                  onChange={e => setDateFilter(e.target.value)}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors duration-200"
                 />
               </div>
             </div>
           </div>
-          
           <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-            <span>Showing {filteredOrders.length} of {allOrder.length} orders</span>
-            {(orders.length > 0 || searchTerm || dateFilter) && (
+            <span>Showing {filteredOrders.length} of {orders.length} orders</span>
+            {(orders.length > 0 || searchTerm || dateFilter || statusFilter) && (
               <button
                 onClick={resetFilter}
                 className="text-blue-600 hover:text-blue-700 font-medium"
@@ -301,56 +286,51 @@ function AdminViewOrder() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredOrders.length > 0 ? (
-                  filteredOrders.map((order) => (
+                  filteredOrders.map(order => (
                     <tr
-                      key={order.id}
+                      key={order._id}
                       className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-colors duration-200 cursor-pointer"
-                      onClick={() => navigate(`/admin/order-detailview/${order.id}`)}
+                      onClick={() => navigate(`/admin/order-detailview/${order._id}`)}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-semibold text-gray-900">#{order.id}</div>
+                          <div className="text-sm font-semibold text-gray-900">#{order._id}</div>
                           <div className="text-xs text-gray-500">Order ID</div>
                         </div>
                       </td>
-                      
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="p-2 rounded-full bg-gray-100 mr-3">
                             <User className="w-4 h-4 text-gray-600" />
                           </div>
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{order.shippingAddress.name}</div>
-                            <div className="text-xs text-gray-500">{order.shippingAddress.email || 'No email'}</div>
+                            <div className="text-sm font-medium text-gray-900">{order.address?.name ?? 'No name'}</div>
+                            <div className="text-xs text-gray-500">{order.address?.email ?? 'No email'}</div>
                           </div>
                         </div>
                       </td>
-                      
                       <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
                         <div>
-                          <div className="text-sm text-gray-900">{new Date(order.date).toLocaleDateString('en-IN')}</div>
-                          <div className="text-xs text-gray-500">{order.products.length} items</div>
+                          <div className="text-sm text-gray-900">{order.date ? new Date(order.date).toLocaleDateString('en-IN') : ''}</div>
+                          <div className="text-xs text-gray-500">{(order.items ? order.items.length : 0)} items</div>
                         </div>
                       </td>
-                      
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-bold text-green-600">
-                          ₹{parseFloat(order.subTotal).toLocaleString('en-IN')}
+                          ₹{parseFloat(order.total ?? 0).toLocaleString('en-IN')}
                         </div>
                       </td>
-                      
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(order.status)}`}>
                           {getStatusIcon(order.status)}
-                          <span className="ml-1">{order.status}</span>
+                          <span className="ml-1">{order.status ?? '-'}</span>
                         </span>
                       </td>
-                      
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <button
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
-                            navigate(`/admin/order-detailview/${order.id}`);
+                            navigate(`/admin/order-detailview/${order._id}`);
                           }}
                           className="inline-flex items-center p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
                         >

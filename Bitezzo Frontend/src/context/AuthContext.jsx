@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (newuser) => {
     try {
-      const Postresponse = await Axios_instance.post('/auth/signup', newuser)
+      const Postresponse = await axios.post('http://localhost:5000/auth/signup', newuser)
      setAuth(newuser)
       toast.success("Signup SuccessFull")
       navigate('/login')
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const loginCredentials = { email, password }
-      const response = await Axios_instance.post(`/auth/login`, loginCredentials, { withCredentials: true })
+      const response = await axios.post(`http://localhost:5000/auth/login`, loginCredentials, { withCredentials: true })
       console.log(response.data)
       const user =response.data.user
       if (response.data.length === 0) {

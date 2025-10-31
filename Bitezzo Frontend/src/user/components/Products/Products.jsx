@@ -6,6 +6,7 @@ import { ProductContext } from '../../../context/ProductContext';
 import { Mosaic } from 'react-loading-indicators';
 import ProductListView from './listview';
 import ProductGridView from './gridView';
+import Axios_instance from '../../../api/axiosConfig';
 
 function Products() {
 
@@ -15,13 +16,30 @@ function Products() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [reviewData, setReviewData] = useState({})
 
+const [currentPage, setCurrentPage] = useState(1);
+const [totalPages, setTotalPages] = useState(1);
+const [limit] = useState(8);
+
   const { addToCart, cartItems } = useContext(CartContext);
   const { addToWishlist, wishlistItems } = useContext(WishListContext);
-  const { products, loading ,filterProductCategory} = useContext(ProductContext);
+  const { loading ,filterProductCategory} = useContext(ProductContext);
 
+
+  const fetchProducts = async (page = 1) => {
+  try {
+    const response = await Axios_instance(`/products?page=${page}&limit=${limit}`);
+    
+
+    setProduct(response.data.products);
+    setTotalPages(response.data.totalPages);
+    setCurrentPage(response.data.page);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+  }
+};
   useEffect(() => {
-    setProduct(products);
-  }, [products]);
+  fetchProducts(currentPage);
+}, [currentPage]);
   useEffect(() => {
     getRandomReviewData()
   }, [])
@@ -74,10 +92,9 @@ function Products() {
         price: item.price,
     });
   };
-
-  const isInCart = (itemId) => cartItems.some((cart) => cart.product._id === itemId);
-  const isInWishlist = (itemId) => wishlistItems.some((wishlist) => wishlist.product._id === itemId);
-console.log(isInWishlist)
+console.log(cartItems,wishlistItems)
+  const isInCart = (itemId) => cartItems.some((cart) => cart?.product._id === itemId);
+  const isInWishlist = (itemId) => wishlistItems.some((wishlist) => wishlist?.product._id === itemId);
   const categories = [
     { label: "All Items", value: "all" },
     { label: "Drinks & Beverages", value: "drinks" },
@@ -215,7 +232,7 @@ console.log(isInWishlist)
           }>
             {viewMode === 'grid' ? (
               <ProductGridView
-                products={products}
+                products={product}
                 handleAddToCart={handleAddToCart}
                 handleAddToWishlist={handleAddToWishlist}
                 isInCart={isInCart}
@@ -224,7 +241,7 @@ console.log(isInWishlist)
               />
             ) : (
               <ProductListView
-                products={products}
+                products={product}
                 handleAddToCart={handleAddToCart}
                 handleAddToWishlist={handleAddToWishlist}
                 isInCart={isInCart}
@@ -236,6 +253,39 @@ console.log(isInWishlist)
           </div>
         )}
       </div>
+      {/* Pagination Controls */}
+{totalPages > 1 && (
+  <div className="flex justify-center mt-10 pb-10 space-x-3">
+    <button
+      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+      disabled={currentPage === 1}
+      className={`px-4 py-2 rounded-lg border ${
+        currentPage === 1
+          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+          : "bg-white hover:bg-red-600 hover:text-white border-gray-300"
+      }`}
+    >
+      Previous
+    </button>
+
+    <span className="flex items-center px-4 py-2 font-medium">
+      Page {currentPage} of {totalPages}
+    </span>
+
+    <button
+      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+      disabled={currentPage === totalPages}
+      className={`px-4 py-2 rounded-lg border ${
+        currentPage === totalPages
+          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+          : "bg-white hover:bg-red-600 hover:text-white border-gray-300"
+      }`}
+    >
+      Next
+    </button>
+  </div>
+)}
+
     </div>
   );
 }
