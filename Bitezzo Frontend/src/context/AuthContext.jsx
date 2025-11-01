@@ -1,9 +1,11 @@
-import { createContext, useState } from "react"
+import { createContext, useEffect, useState } from "react"
 import Axios_instance from "../api/axiosConfig"
 import { useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
-import profileIcon from "../assets/images/profile-icon-9.png";
 import axios from "axios";
+import { io } from "socket.io-client";
+const socket = io("http://localhost:5000");
+
 
 export const AuthContext = createContext()
 
@@ -21,6 +23,25 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate()
 
 
+  useEffect(() => {
+    
+    socket.emit("registerUser", auth.id);
+    
+    socket.on("userBlocked", (data) => {
+      console.warn("Blocked by admin:", data.message);
+
+    
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+
+      toast.error("You have been blocked by admin");
+      navigate("/login");
+      window.location.reload();
+    });
+
+     return () => socket.off("userBlocked");
+  },[auth.id])
+
 
   const signup = async (newuser) => {
     try {
@@ -30,7 +51,18 @@ export const AuthProvider = ({ children }) => {
       navigate('/login')
 
     } catch (err) {
-      console.error("Axios signup error:", err.response?.data || err.message);
+      console.error("Axios signup error:", err.response?.data || err.message)
+
+       if (err.response?.status === 400) {
+      const errors = err.response?.data?.errors;
+      if (Array.isArray(errors)) {
+        errors.forEach((errorMsg) => toast.error(errorMsg));
+      } else {
+        toast.error(errors || "Validation failed");
+      }
+    } else {
+      toast.error("Something went wrong. Please try again.");
+    }
     }
   }
 
@@ -44,6 +76,7 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.post(`http://localhost:5000/auth/login`, loginCredentials, { withCredentials: true })
       console.log(response.data)
       const user =response.data.user
+      console.log(user)
       if (response.data.length === 0) {
         toast.error("The UserName or Password doesn't Match")
       }
@@ -56,7 +89,7 @@ export const AuthProvider = ({ children }) => {
           }else{
             toast.success("user")
             navigate("/")
-            const localStorageLoginData = {id:user._id, username:user.name, email:user.email,isAdmin:user.isAdmin }
+            const localStorageLoginData = {id:user.id, username:user.name, email:user.email,isAdmin:user.isAdmin }
             localStorage.setItem("user", JSON.stringify(localStorageLoginData))
           }
           setAuth({
@@ -73,16 +106,12 @@ export const AuthProvider = ({ children }) => {
       
 
     } catch (err) {
+      if(err.response.status==400){
+        toast.error(err.response?.data || "SomeThing went wrong")
+      }
       console.error("Axios login error:", err.response?.data || err.message);
+      toast.error(err.response?.data?.message || "SomeThing went wrong");
     }
-  }
-
-
-  //______Editing___user_______
-
-
-  const updateUser = (userData) => {
-    console.log(userData)
   }
 
 
@@ -93,6 +122,7 @@ export const AuthProvider = ({ children }) => {
       setAuth(null)
       localStorage.removeItem("accessToken")
       localStorage.removeItem("user")
+    
       navigate('/')
     }
   }
@@ -128,7 +158,7 @@ export const AuthProvider = ({ children }) => {
 
 
 
-  return (<AuthContext.Provider value={{ auth, signup, login, logout, toggleUser, adminLogout, updateUser }}>
+  return (<AuthContext.Provider value={{ auth, signup, login, logout, toggleUser, adminLogout }}>
     {children}
   </AuthContext.Provider>)
 }

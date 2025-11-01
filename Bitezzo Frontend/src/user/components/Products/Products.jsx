@@ -15,6 +15,7 @@ function Products() {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [reviewData, setReviewData] = useState({})
+   const [loading, setLoading] = useState(true);
 
 const [currentPage, setCurrentPage] = useState(1);
 const [totalPages, setTotalPages] = useState(1);
@@ -22,24 +23,40 @@ const [limit] = useState(8);
 
   const { addToCart, cartItems } = useContext(CartContext);
   const { addToWishlist, wishlistItems } = useContext(WishListContext);
-  const { loading ,filterProductCategory} = useContext(ProductContext);
 
 
   const fetchProducts = async (page = 1) => {
   try {
     const response = await Axios_instance(`/products?page=${page}&limit=${limit}`);
-    
-
     setProduct(response.data.products);
     setTotalPages(response.data.totalPages);
     setCurrentPage(response.data.page);
+    setLoading(false)
   } catch (error) {
+    setLoading(false)
     console.error("Error fetching products:", error);
   }
 };
+
+const filterProductCategory = async (category) => {
+        setLoading(true);
+        try {
+            const response = await Axios_instance.get(`/products/category/${category}`)
+            const Products = response.data
+            setCurrentPage(1)
+            setProduct(Products)
+            setLoading(false);
+        } catch (err) {
+            console.log( err.response?.data || err.message)
+            setLoading(false);
+        }
+
+    }
+
   useEffect(() => {
   fetchProducts(currentPage);
 }, [currentPage]);
+
   useEffect(() => {
     getRandomReviewData()
   }, [])

@@ -14,11 +14,11 @@ export const ProductProvider = ({ children }) => {
 
 
 
-    const fetchProductData = async () => {
+    const fetchProductData = async (page,limit) => {
         setLoading(true);
         try {
-            const response = await Axios_instance.get("/products")
-            const Products = response.data.products
+            const response = await Axios_instance(`/products?page=${page}&limit=${limit}`);
+            const Products = response.data
             setProducts(Products)
             setLoading(false);
         } catch (e) {
@@ -93,7 +93,7 @@ export const ProductProvider = ({ children }) => {
         }
     }
 
-    return (<ProductContext.Provider value={{ products,loading, addProduct, deleteProduct, editProduct,filterProductCategory }}>
+    return (<ProductContext.Provider value={{ products,loading, fetchProductData,addProduct, deleteProduct, editProduct,filterProductCategory }}>
         {children}
     </ProductContext.Provider>)
 
