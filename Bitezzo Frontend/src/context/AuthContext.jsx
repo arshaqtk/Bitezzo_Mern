@@ -4,7 +4,10 @@ import { useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
 import axios from "axios";
 import { io } from "socket.io-client";
-const socket = io("https://bitezzo-backend.onrender.com");
+const socket = io("https://bitezzo-backend.onrender.com", {
+  withCredentials: true,
+  transports: ["websocket"], // force WebSocket instead of polling
+});
 
 
 export const AuthContext = createContext()
