@@ -2,7 +2,7 @@ import axios from "axios"
 import { refreshTokenIfRequired } from "../../api/authHelpers";
 
  const adminAxiosInstace=axios.create({
-    baseURL: "http://localhost:5000/admin",headers:{ "Content-Type": "application/json"}
+    baseURL: "https://bitezzo-backend.onrender.com/admin",headers:{ "Content-Type": "application/json"}
 })
 
 adminAxiosInstace.interceptors.request.use(async config => {

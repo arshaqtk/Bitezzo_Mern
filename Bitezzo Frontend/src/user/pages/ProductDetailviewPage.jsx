@@ -19,7 +19,7 @@ function ProductDetailView() {
   useEffect(() => {
   async function fetchData() {
     try {
-      const { data } = await axios.get(`http://localhost:5000/products/${id}`);
+      const { data } = await axios.get(`https://bitezzo-backend.onrender.com/products/${id}`);
       console.log(data)
       
         const { _id, name, price, images, category, description, quantity } = data;
@@ -38,7 +38,7 @@ function ProductDetailView() {
       if (product.length > 0) {
         try {
           const currentProduct = product[0];
-          const { data } = await axios.get(`http://localhost:5000/products/`)
+          const { data } = await axios.get(`https://bitezzo-backend.onrender.com/products/`)
           
           // Filter products by same category, exclude current product, and limit to 4
           const similar = data

@@ -4,7 +4,7 @@ import { refreshTokenIfRequired } from "./authHelpers";
 const Axios_instance = axios.create({
   baseURL: 
   // "https://react-ecommerce-server-m4c6.onrender.com", 
-  "http://localhost:5000",
+  "https://bitezzo-backend.onrender.com",
   headers: {
     "Content-Type": "application/json"
   }

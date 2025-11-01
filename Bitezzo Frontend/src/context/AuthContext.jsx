@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
 import axios from "axios";
 import { io } from "socket.io-client";
-const socket = io("http://localhost:5000");
+const socket = io("https://bitezzo-backend.onrender.com");
 
 
 export const AuthContext = createContext()
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (newuser) => {
     try {
-      const Postresponse = await axios.post('http://localhost:5000/auth/signup', newuser)
+      const Postresponse = await axios.post('https://bitezzo-backend.onrender.com/auth/signup', newuser)
      setAuth(newuser)
       toast.success("Signup SuccessFull")
       navigate('/login')
@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const loginCredentials = { email, password }
-      const response = await axios.post(`http://localhost:5000/auth/login`, loginCredentials, { withCredentials: true })
+      const response = await axios.post(`https://bitezzo-backend.onrender.com/auth/login`, loginCredentials, { withCredentials: true })
       console.log(response.data)
       const user =response.data.user
       console.log(user)
